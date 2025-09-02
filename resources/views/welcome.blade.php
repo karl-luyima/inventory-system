@@ -4,6 +4,11 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
+        <h1 class="text-4xl font-bold text-blue-600">
+              Hello Tailwind v4!
+        </h1>
+
+
         <title>{{ config('app.name', 'Laravel') }}</title>
 
         <!-- Fonts -->

@@ -1,11 +1,45 @@
-@import 'tailwindcss';
+/*@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
-@source '../../storage/framework/views/*.php';
-@source '../**/*.blade.php';
-@source '../**/*.js';
-
-@theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+body {
+    @apply bg-gray-100 text-gray-800;
 }
+
+.sidebar {
+    @apply w-64 h-screen bg-white shadow-lg flex flex-col;
+}
+
+.sidebar a {
+    @apply flex items-center gap-3 px-4 py-2 rounded-lg text-gray-700 font-medium hover:bg-primary hover:text-white transition;
+}
+
+.sidebar a.active {
+    @apply bg-primary text-white;
+}
+
+.topbar {
+    @apply flex justify-between items-center bg-white shadow px-6 py-3;
+}
+
+.topbar .profile {
+    @apply text-right;
+}
+
+.topbar .profile span {
+    @apply text-sm text-gray-500;
+}
+
+.card {
+    @apply p-6 bg-white rounded-2xl shadow hover:shadow-lg transition;
+}
+
+.card h2 {
+    @apply text-lg font-semibold mb-2;
+}
+
+.card p {
+    @apply text-sm text-gray-500;
+}
+
+*/
