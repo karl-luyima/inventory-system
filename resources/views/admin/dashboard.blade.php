@@ -5,15 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard - Inventory System</title>
     
-    {{-- Tailwind CSS --}}
+    <!-- Tailwind CSS -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
-    {{-- Chart.js CDN --}}
+    <!-- Chart.js CDN -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="flex bg-gray-50 font-sans">
 
-    {{-- Sidebar --}}
+    <!-- Sidebar -->
     <aside class="w-64 bg-white h-screen shadow-lg">
         <div class="p-6 text-2xl font-bold text-blue-600 border-b">
             InventoryPro
@@ -31,10 +31,10 @@
         </nav>
     </aside>
 
-    {{-- Main Content --}}
+    <!-- Main Content -->
     <div class="flex-1 flex flex-col">
         
-        {{-- Top Bar --}}
+        <!-- Top Bar -->
         <header class="flex justify-between items-center bg-white shadow px-6 py-4">
             <h1 class="text-xl font-semibold text-gray-700">📊 Dashboard</h1>
             <div class="flex items-center gap-6">
@@ -54,10 +54,10 @@
             </div>
         </header>
 
-        {{-- Content --}}
+        <!-- Content -->
         <main class="p-8 space-y-8">
             
-            {{-- KPI Cards --}}
+            <!-- KPI Cards -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div class="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-6 rounded-2xl shadow-lg">
                     <h2 class="text-lg font-semibold">Total Users</h2>
@@ -73,7 +73,7 @@
                 </div>
             </div>
 
-            {{-- Charts --}}
+            <!-- Charts -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div class="bg-white p-6 rounded-2xl shadow-lg">
                     <h2 class="text-lg font-semibold mb-4">Monthly Sales Trend</h2>
@@ -87,7 +87,7 @@
         </main>
     </div>
 
-    {{-- Chart.js --}}
+    <!-- Chart.js -->
     <script>
         // Sales Line Chart
         const salesCtx = document.getElementById('salesChart');
