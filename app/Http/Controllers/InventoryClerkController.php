@@ -7,17 +7,30 @@ use App\Models\Product;
 
 class InventoryClerkController extends Controller
 {
-    // Inventory Clerk Dashboard
+    // Show dashboard with all products
     public function dashboard()
     {
-        return view('inventory.dashboard', [
-            'totalProducts'=> Product::count(),
-            'totalStock'   => Product::sum('stock'),
-            'lowStock'     => Product::where('stock', '<', 10)->get(),
+        $products = Product::all();
+        return view('clerk.dashboard', compact('products'));
+    }
 
-            // Chart data
-            'productNames' => Product::pluck('name'),
-            'productStock' => Product::pluck('stock'),
-        ]);
+    // Search products
+    public function search(Request $request)
+    {
+        $products = Product::where('name', 'like', '%' . $request->search . '%')
+                            ->orWhere('pdt_id', 'like', '%' . $request->search . '%')
+                            ->get();
+
+        return view('clerk.dashboard', compact('products'));
+    }
+
+    // Update product stock
+    public function updateStock(Request $request, $id)
+    {
+        $product = Product::findOrFail($id);
+        $product->stock = $request->stock;
+        $product->save();
+
+        return redirect()->route('clerk.dashboard')->with('success', 'Stock updated successfully.');
     }
 }

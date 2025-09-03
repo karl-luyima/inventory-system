@@ -1,4 +1,3 @@
-
 <?php
 
 namespace App\Http\Controllers;
@@ -9,22 +8,35 @@ use App\Models\Product;
 
 class SalesAnalystController extends Controller
 {
-    // Sales Analyst Dashboard
+    // Dashboard
     public function dashboard()
     {
-        return view('sales.dashboard', [
-            'monthlySales' => Sale::whereMonth('created_at', now()->month)->sum('amount'),
-            'yearlySales'  => Sale::whereYear('created_at', now()->year)->sum('amount'),
-            'topProducts'  => Product::withSum('sales', 'amount')
-                                    ->orderByDesc('sales_sum_amount')
-                                    ->take(5)
-                                    ->get(),
+        $sales = Sale::latest()->take(5)->get();
+        $topProducts = Product::orderBy('stock', 'desc')->take(5)->get();
+        return view('analyst.dashboard', compact('sales', 'topProducts'));
+    }
 
-            // Chart data
-            'salesMonths'  => Sale::selectRaw('MONTHNAME(created_at) as month')
-                                ->groupBy('month')->pluck('month'),
-            'salesData'    => Sale::selectRaw('SUM(amount) as total')
-                                ->groupByRaw('MONTH(created_at)')->pluck('total'),
+    // Record new sale
+    public function store(Request $request)
+    {
+        $request->validate([
+            'pdt_id' => 'required|exists:products,pdt_id',
+            'quantity' => 'required|integer|min:1',
+            'amount' => 'required|numeric|min:0',
         ]);
+
+        // Save sale
+        $sale = new Sale();
+        $sale->pdt_id = $request->pdt_id;
+        $sale->quantity = $request->quantity;
+        $sale->amount = $request->amount;
+        $sale->save();
+
+        // Decrease product stock
+        $product = Product::find($request->pdt_id);
+        $product->stock -= $request->quantity;
+        $product->save();
+
+        return redirect()->route('analyst.dashboard')->with('success', 'Sale recorded successfully.');
     }
 }
