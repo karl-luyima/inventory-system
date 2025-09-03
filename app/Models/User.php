@@ -13,7 +13,9 @@ class User extends Authenticatable
     public $incrementing = true;
     protected $keyType = 'int';
 
-    protected $fillable = ['password'];
+    // Allow mass assignment for all form fields
+    protected $fillable = ['email', 'password', 'role'];
+
     protected $hidden = ['password'];
 
     public function administrators() {

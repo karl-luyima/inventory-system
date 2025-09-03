@@ -1,0 +1,9 @@
+/* custom.css */
+
+/* Set default font and background */
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #F3F4F6; /* Tailwind gray-100 */
+}
+
+/* Optional: custom tweaks for buttons, cards, etc. */

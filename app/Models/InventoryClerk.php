@@ -12,6 +12,7 @@ class InventoryClerk extends Model
 
     protected $fillable = ['user_id', 'clerk_email', 'clerk_name'];
 
+
     public function user() {
         return $this->belongsTo(User::class, 'user_id');
     }

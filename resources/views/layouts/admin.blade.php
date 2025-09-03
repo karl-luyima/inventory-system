@@ -2,54 +2,101 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Admin - @yield('title', 'Dashboard')</title>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@yield('title', 'Admin Panel')</title>
+    @vite('resources/css/app.css')
 </head>
-<body class="flex bg-gray-50 font-sans">
+<body class="bg-gray-100 flex">
 
     {{-- Sidebar --}}
-    <aside class="w-64 bg-white h-screen shadow-lg">
-        <div class="p-6 text-2xl font-bold text-blue-600 border-b">
-            InventoryPro
+    <aside class="w-64 bg-white shadow-md h-screen sticky top-0">
+        <div class="p-6 text-xl font-bold text-blue-600">
+            Company Dashboard
         </div>
-        <nav class="p-6">
-            <ul class="space-y-4 text-gray-700 font-medium">
-                <li><a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3 p-2 rounded-lg hover:bg-blue-100">📈 Dashboard</a></li>
-                <li><a href="{{ route('admin.users') }}" class="flex items-center gap-3 p-2 rounded-lg hover:bg-blue-100">👤 Users</a></li>
-                <li><a href="{{ route('admin.inventory') }}" class="flex items-center gap-3 p-2 rounded-lg hover:bg-blue-100">📦 Inventory</a></li>
-                <li><a href="{{ route('admin.sales') }}" class="flex items-center gap-3 p-2 rounded-lg hover:bg-blue-100">💵 Sales</a></li>
-                <li><a href="{{ route('admin.reports') }}" class="flex items-center gap-3 p-2 rounded-lg hover:bg-blue-100">📊 Reports</a></li>
-                <li><a href="{{ route('admin.kpis') }}" class="flex items-center gap-3 p-2 rounded-lg hover:bg-blue-100">📑 KPIs</a></li>
-                <li><a href="{{ route('admin.settings') }}" class="flex items-center gap-3 p-2 rounded-lg hover:bg-blue-100">⚙️ Settings</a></li>
+        <nav class="mt-6">
+            <ul class="space-y-2">
+
+                {{-- General Dashboard (Shared) --}}
+                <li>
+                    <a href="{{ route('general.dashboard') }}"
+                       class="flex items-center gap-3 p-2 rounded-lg hover:bg-blue-100">
+                        📈 General Dashboard
+                    </a>
+                </li>
+
+                {{-- Admin Links --}}
+                <li>
+                    <a href="{{ route('admin.dashboard') }}"
+                       class="flex items-center gap-3 p-2 rounded-lg hover:bg-blue-100">
+                        🏠 Admin Dashboard
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('admin.users') }}"
+                       class="flex items-center gap-3 p-2 rounded-lg hover:bg-blue-100">
+                        👥 Users
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('admin.inventory') }}"
+                       class="flex items-center gap-3 p-2 rounded-lg hover:bg-blue-100">
+                        📦 Inventory
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('admin.sales') }}"
+                       class="flex items-center gap-3 p-2 rounded-lg hover:bg-blue-100">
+                        💰 Sales
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('admin.reports') }}"
+                       class="flex items-center gap-3 p-2 rounded-lg hover:bg-blue-100">
+                        📑 Reports
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('admin.kpis') }}"
+                       class="flex items-center gap-3 p-2 rounded-lg hover:bg-blue-100">
+                        🎯 KPIs
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ route('admin.settings') }}"
+                       class="flex items-center gap-3 p-2 rounded-lg hover:bg-blue-100">
+                        ⚙️ Settings
+                    </a>
+                </li>
+
+                {{-- Inventory Clerk --}}
+                <li class="mt-6">
+                    <a href="{{ route('clerk.dashboard') }}"
+                       class="flex items-center gap-3 p-2 rounded-lg hover:bg-blue-100">
+                        📝 Clerk Dashboard
+                    </a>
+                </li>
+
+                {{-- Sales Analyst --}}
+                <li>
+                    <a href="{{ route('analyst.dashboard') }}"
+                       class="flex items-center gap-3 p-2 rounded-lg hover:bg-blue-100">
+                        📊 Analyst Dashboard
+                    </a>
+                </li>
+
             </ul>
         </nav>
     </aside>
 
     {{-- Main Content --}}
-    <div class="flex-1 flex flex-col">
-
-        {{-- Top Bar --}}
-        <header class="flex justify-between items-center bg-white shadow px-6 py-4">
-            <h1 class="text-xl font-semibold text-gray-700">@yield('page-title', 'Dashboard')</h1>
-            <div class="flex items-center gap-6">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold">
-                        {{ strtoupper(substr(Auth::user()->user_id ?? 'A', 0, 1)) }}
-                    </div>
-                    <div>
-                        <p class="font-medium">{{ Auth::user()->user_id ?? 'Admin' }}</p>
-                        <p class="text-sm text-gray-500">Administrator</p>
-                    </div>
-                </div>
-            </div>
+    <main class="flex-1 p-6">
+        <header class="mb-6 border-b pb-4">
+            <h1 class="text-2xl font-semibold text-gray-800">@yield('page-title', 'Dashboard')</h1>
         </header>
-
-        {{-- Page Content --}}
-        <main class="flex-1">
+        <section>
             @yield('content')
-        </main>
-    </div>
+        </section>
+    </main>
 
 </body>
 </html>

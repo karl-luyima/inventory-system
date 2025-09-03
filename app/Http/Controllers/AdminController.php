@@ -11,10 +11,21 @@ use App\Models\Kpi;
 
 class AdminController extends Controller
 {
-    // handling users
-    public function users()
+    // ================= Users =================
+    public function users(Request $request)
     {
-        $users = User::all();
+        // Handle filter
+        $status = $request->get('status', 'all');
+        $query = User::query();
+
+        if ($status === 'active') {
+            $query->where('active', 1);
+        } elseif ($status === 'inactive') {
+            $query->where('active', 0);
+        }
+
+        // Paginate users
+        $users = $query->paginate(10);
 
         // Attach role dynamically
         foreach ($users as $user) {
@@ -29,7 +40,18 @@ class AdminController extends Controller
             }
         }
 
-        return view('admin.users', compact('users'));
+        // Overview counts
+        $totalUsers    = User::count();
+        $activeUsers   = User::where('active', 1)->count();
+        $inactiveUsers = User::where('active', 0)->count();
+
+        return view('admin.users', compact(
+            'users',
+            'totalUsers',
+            'activeUsers',
+            'inactiveUsers',
+            'status'
+        ));
     }
 
     public function deleteUser($id)
@@ -46,7 +68,7 @@ class AdminController extends Controller
         return redirect()->route('admin.users')->with('success', 'User deleted successfully.');
     }
 
-    // KPIs
+    // ================= KPIs =================
     public function kpis()
     {
         $kpis = Kpi::all();
