@@ -20,39 +20,27 @@ class RegisterController extends Controller
             'role' => 'required|in:administrator,inventory_clerk,sales_analyst',
         ]);
 
-        // Create user
+        // Create user login credentials
         $user = User::create([
             'user_id' => $request->user_id,
             'password' => Hash::make($request->password),
         ]);
 
-        // Assign role
+        // Insert into the role-specific table
         switch ($request->role) {
             case 'administrator':
-                Administrator::create([
-                    'user_id' => $user->user_id,
-                    'admin_email' => null,
-                    'admin_name' => null,
-                ]);
+                Administrator::create(['user_id' => $user->user_id]);
                 break;
 
             case 'inventory_clerk':
-                InventoryClerk::create([
-                    'user_id' => $user->user_id,
-                    'clerk_email' => null,
-                    'clerk_name' => null,
-                ]);
+                InventoryClerk::create(['user_id' => $user->user_id]);
                 break;
 
             case 'sales_analyst':
-                SalesAnalyst::create([
-                    'user_id' => $user->user_id,
-                    'analyst_email' => null,
-                    'analyst_name' => null,
-                ]);
+                SalesAnalyst::create(['user_id' => $user->user_id]);
                 break;
         }
 
-        return redirect()->route('login')->with('success', 'Registration successful. Please login.');
+        return redirect()->route('login')->with('success', 'Registration successful! Please login.');
     }
 }

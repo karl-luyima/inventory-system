@@ -18,7 +18,6 @@ class LoginController extends Controller
         $request->validate([
             'user_id' => 'required',
             'password' => 'required',
-            'role' => 'required|in:administrator,inventory_clerk,sales_analyst',
         ]);
 
         // Find user
@@ -28,32 +27,24 @@ class LoginController extends Controller
             return back()->withErrors(['login' => 'Invalid credentials.']);
         }
 
-        // Store user in session (manual auth since we use custom user_id)
+        // Log the user in (session-based)
         Auth::login($user);
 
-        // Redirect based on role
-        switch ($request->role) {
-            case 'administrator':
-                if (Administrator::where('user_id', $user->user_id)->exists()) {
-                    return redirect()->route('admin.dashboard');
-                }
-                break;
-
-            case 'inventory_clerk':
-                if (InventoryClerk::where('user_id', $user->user_id)->exists()) {
-                    return redirect()->route('clerk.dashboard');
-                }
-                break;
-
-            case 'sales_analyst':
-                if (SalesAnalyst::where('user_id', $user->user_id)->exists()) {
-                    return redirect()->route('analyst.dashboard');
-                }
-                break;
+        // Detect role automatically
+        if (Administrator::where('user_id', $user->user_id)->exists()) {
+            return redirect()->route('admin.dashboard');
         }
 
-        // If mismatch between role & DB
+        if (InventoryClerk::where('user_id', $user->user_id)->exists()) {
+            return redirect()->route('clerk.dashboard');
+        }
+
+        if (SalesAnalyst::where('user_id', $user->user_id)->exists()) {
+            return redirect()->route('analyst.dashboard');
+        }
+
+        // If no role found, logout
         Auth::logout();
-        return back()->withErrors(['login' => 'Role does not match your account.']);
+        return back()->withErrors(['login' => 'No role assigned to this account.']);
     }
 }

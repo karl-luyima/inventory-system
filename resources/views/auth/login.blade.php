@@ -25,15 +25,6 @@
                 <label class="block text-gray-700">Password</label>
                 <input type="password" name="password" class="w-full px-3 py-2 border rounded-lg focus:ring focus:ring-blue-200" required>
             </div>
-            <div>
-                <label class="block text-gray-700">Role</label>
-                <select name="role" class="w-full px-3 py-2 border rounded-lg focus:ring focus:ring-blue-200" required>
-                    <option value="">-- Select Role --</option>
-                    <option value="administrator">Administrator</option>
-                    <option value="inventory_clerk">Inventory Clerk</option>
-                    <option value="sales_analyst">Sales Analyst</option>
-                </select>
-            </div>
             <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition">
                 Login
             </button>
