@@ -4,60 +4,59 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use App\Models\User;
+use Illuminate\Support\Facades\Session;
 use App\Models\Administrator;
 use App\Models\InventoryClerk;
 use App\Models\SalesAnalyst;
 
 class LoginController extends Controller
 {
-    // Show login form
     public function showLogin()
     {
         return view('auth.login');
     }
 
-    // Handle login
     public function login(Request $request)
     {
         $request->validate([
-            'user_id' => 'required',
+            'email' => 'required|email',
             'password' => 'required',
         ]);
 
-        $user = User::where('user_id', $request->user_id)->first();
+        $email = $request->email;
+        $password = $request->password;
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            return back()->withErrors(['login' => 'Invalid credentials.']);
+        // Check Admin
+        $admin = Administrator::where('admin_email', $email)->first();
+        if ($admin && Hash::check($password, $admin->password)) {
+            Session::put('role', 'admin');
+            Session::put('user_name', $admin->admin_name);
+            return redirect()->route('admin.home');
         }
 
-        Auth::login($user);
-
-        // Redirect based on role
-        if (Administrator::where('user_id', $user->user_id)->exists()) {
-            return redirect()->route('admin.home'); // ✅ updated
-        }
-
-        if (InventoryClerk::where('user_id', $user->user_id)->exists()) {
+        // Check Inventory Clerk
+        $clerk = InventoryClerk::where('clerk_email', $email)->first();
+        if ($clerk && Hash::check($password, $clerk->password)) {
+            Session::put('role', 'clerk');
+            Session::put('user_name', $clerk->clerk_name);
             return redirect()->route('clerk.dashboard');
         }
 
-        if (SalesAnalyst::where('user_id', $user->user_id)->exists()) {
+        // Check Sales Analyst
+        $analyst = SalesAnalyst::where('analyst_email', $email)->first();
+        if ($analyst && Hash::check($password, $analyst->password)) {
+            Session::put('role', 'analyst');
+            Session::put('user_name', $analyst->analyst_name);
             return redirect()->route('analyst.dashboard');
         }
 
-        Auth::logout();
-        return back()->withErrors(['login' => 'No role assigned to this account.']);
+        return back()->withErrors(['login' => 'Invalid email or password.']);
     }
 
-    // Logout
     public function logout(Request $request)
     {
-        Auth::logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+        Session::flush();
         return redirect()->route('login');
     }
 }

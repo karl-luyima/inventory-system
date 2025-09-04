@@ -3,8 +3,8 @@
 /* Tailwind Base Styles */
 @tailwind base;
 
-/* Tailwind Components (buttons, forms, cards) */
+/* Tailwind Components */
 @tailwind components;
 
-/* Tailwind Utilities (spacing, colors, flex, grid, etc.) */
+/* Tailwind Utilities */
 @tailwind utilities;

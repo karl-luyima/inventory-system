@@ -5,19 +5,19 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration {
-    public function up(): void {
+    public function up(): void
+    {
         Schema::create('inventory_clerks', function (Blueprint $table) {
             $table->increments('clerk_id');
-            $table->unsignedInteger('user_id');
-            $table->string('clerk_email', 255)->nullable();
-            $table->string('clerk_name', 255)->nullable();
+            $table->string('clerk_name', 255);
+            $table->string('clerk_email', 255)->unique();
+            $table->string('password');
             $table->timestamps();
-
-            $table->foreign('user_id')->references('user_id')->on('users')->onDelete('cascade');
         });
     }
 
-    public function down(): void {
+    public function down(): void
+    {
         Schema::dropIfExists('inventory_clerks');
     }
 };
