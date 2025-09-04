@@ -12,9 +12,21 @@
         <h2 class="text-3xl font-extrabold mb-2 text-center text-green-600">Create Account</h2>
         <p class="text-center text-gray-600 mb-6">Fill in your details to get started</p>
 
+        <!-- Display all errors -->
         @if($errors->any())
             <div class="mb-4 text-red-600 text-sm text-center">
-                {{ $errors->first() }}
+                <ul>
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
+        <!-- Success message -->
+        @if(session('success'))
+            <div class="mb-4 text-green-600 text-sm text-center">
+                {{ session('success') }}
             </div>
         @endif
 
@@ -25,6 +37,7 @@
             <div>
                 <label for="name" class="block text-gray-700 font-medium mb-1">Full Name</label>
                 <input id="name" type="text" name="name" placeholder="Enter your full name"
+                       value="{{ old('name') }}"
                        class="w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400"
                        required>
             </div>
@@ -33,6 +46,7 @@
             <div>
                 <label for="email" class="block text-gray-700 font-medium mb-1">Email</label>
                 <input id="email" type="email" name="email" placeholder="Enter your email address"
+                       value="{{ old('email') }}"
                        class="w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400"
                        required>
             </div>
@@ -60,9 +74,9 @@
                         class="w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400"
                         required>
                     <option value="">-- Select Role --</option>
-                    <option value="administrator">Administrator</option>
-                    <option value="inventory_clerk">Inventory Clerk</option>
-                    <option value="sales_analyst">Sales Analyst</option>
+                    <option value="administrator" {{ old('role') == 'administrator' ? 'selected' : '' }}>Administrator</option>
+                    <option value="inventory_clerk" {{ old('role') == 'inventory_clerk' ? 'selected' : '' }}>Inventory Clerk</option>
+                    <option value="sales_analyst" {{ old('role') == 'sales_analyst' ? 'selected' : '' }}>Sales Analyst</option>
                 </select>
             </div>
 

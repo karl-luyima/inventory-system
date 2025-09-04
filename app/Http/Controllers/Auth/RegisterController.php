@@ -27,31 +27,21 @@ class RegisterController extends Controller
 
         $hashedPassword = Hash::make($request->password);
 
-        switch ($request->role) {
-            case 'administrator':
-                Administrator::create([
-                    'admin_name' => $request->name,
-                    'admin_email' => $request->email,
-                    'password' => $hashedPassword
-                ]);
-                break;
+        // Map roles to their models and name columns
+        $roles = [
+            'administrator' => ['model' => Administrator::class, 'name_column' => 'admin_name', 'email_column' => 'admin_email'],
+            'inventory_clerk' => ['model' => InventoryClerk::class, 'name_column' => 'clerk_name', 'email_column' => 'clerk_email'],
+            'sales_analyst' => ['model' => SalesAnalyst::class, 'name_column' => 'analyst_name', 'email_column' => 'analyst_email'],
+        ];
 
-            case 'inventory_clerk':
-                InventoryClerk::create([
-                    'clerk_name' => $request->name,
-                    'clerk_email' => $request->email,
-                    'password' => $hashedPassword
-                ]);
-                break;
+        $roleData = $roles[$request->role];
+        $model = $roleData['model'];
 
-            case 'sales_analyst':
-                SalesAnalyst::create([
-                    'analyst_name' => $request->name,
-                    'analyst_email' => $request->email,
-                    'password' => $hashedPassword
-                ]);
-                break;
-        }
+        $model::create([
+            $roleData['name_column'] => $request->name,
+            $roleData['email_column'] => $request->email,
+            'password' => $hashedPassword,
+        ]);
 
         return redirect()->route('login')->with('success', 'Account created successfully!');
     }

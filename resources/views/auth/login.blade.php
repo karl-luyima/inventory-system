@@ -12,12 +12,18 @@
         <h2 class="text-3xl font-extrabold text-center text-blue-600 mb-2">Welcome Back 👋</h2>
         <p class="text-center text-gray-600 mb-6">Login to access your dashboard</p>
 
+        <!-- Display all errors -->
         @if($errors->any())
             <div class="mb-4 text-red-600 text-sm text-center">
-                {{ $errors->first() }}
+                <ul>
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
             </div>
         @endif
 
+        <!-- Success message -->
         @if(session('success'))
             <div class="mb-4 text-green-600 text-sm text-center">
                 {{ session('success') }}
@@ -31,6 +37,7 @@
             <div>
                 <label for="email" class="block text-gray-700 font-medium mb-1">Email</label>
                 <input id="email" type="email" name="email" placeholder="Enter your email"
+                       value="{{ old('email') }}"
                        class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
                        required>
             </div>

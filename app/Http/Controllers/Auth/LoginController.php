@@ -12,11 +12,13 @@ use App\Models\SalesAnalyst;
 
 class LoginController extends Controller
 {
+    // Show login form
     public function showLogin()
     {
         return view('auth.login');
     }
 
+    // Handle login submission
     public function login(Request $request)
     {
         $request->validate([
@@ -27,33 +29,47 @@ class LoginController extends Controller
         $email = $request->email;
         $password = $request->password;
 
-        // Check Admin
-        $admin = Administrator::where('admin_email', $email)->first();
-        if ($admin && Hash::check($password, $admin->password)) {
-            Session::put('role', 'admin');
-            Session::put('user_name', $admin->admin_name);
-            return redirect()->route('admin.home');
+        // Array of roles and their models
+        $roles = [
+            'admin' => Administrator::class,
+            'clerk' => InventoryClerk::class,
+            'analyst' => SalesAnalyst::class,
+        ];
+
+        foreach ($roles as $role => $model) {
+            $user = $model::where(function($query) use ($role, $email) {
+                switch ($role) {
+                    case 'admin':
+                        $query->where('admin_email', $email);
+                        break;
+                    case 'clerk':
+                        $query->where('clerk_email', $email);
+                        break;
+                    case 'analyst':
+                        $query->where('analyst_email', $email);
+                        break;
+                }
+            })->first();
+
+            if ($user && Hash::check($password, $user->password)) {
+                // Set session
+                Session::put('role', $role);
+                Session::put('user_name', $user->{$role.'_name'});
+                // Redirect to role-specific dashboard
+                $route = match ($role) {
+                    'admin' => 'admin.home',
+                    'clerk' => 'clerk.dashboard',
+                    'analyst' => 'analyst.dashboard',
+                };
+                return redirect()->route($route);
+            }
         }
 
-        // Check Inventory Clerk
-        $clerk = InventoryClerk::where('clerk_email', $email)->first();
-        if ($clerk && Hash::check($password, $clerk->password)) {
-            Session::put('role', 'clerk');
-            Session::put('user_name', $clerk->clerk_name);
-            return redirect()->route('clerk.dashboard');
-        }
-
-        // Check Sales Analyst
-        $analyst = SalesAnalyst::where('analyst_email', $email)->first();
-        if ($analyst && Hash::check($password, $analyst->password)) {
-            Session::put('role', 'analyst');
-            Session::put('user_name', $analyst->analyst_name);
-            return redirect()->route('analyst.dashboard');
-        }
-
-        return back()->withErrors(['login' => 'Invalid email or password.']);
+        // Invalid credentials
+        return back()->withErrors(['login' => 'Invalid email or password.'])->withInput();
     }
 
+    // Logout
     public function logout(Request $request)
     {
         Session::flush();
