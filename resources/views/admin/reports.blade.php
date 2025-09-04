@@ -1,46 +1,73 @@
 @extends('layouts.admin')
 
-@section('title', 'Reports')
-@section('page-title', '📊 Reports')
+@section('title', 'Reports Overview')
+@section('page-title', '📑 Reports Overview')
 
 @section('content')
 <div class="p-8 space-y-6">
 
-    {{-- Download Button --}}
-    <div class="flex justify-end mb-4">
-        <a href="{{ route('admin.reports.download') }}" 
-           class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
-            ⬇️ Download Report (PDF)
-        </a>
+    {{-- Reports Summary --}}
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-white p-6 rounded-xl shadow-md text-center">
+            <h2 class="text-lg font-semibold text-gray-700">Total Reports</h2>
+            <p id="reportCount" class="text-3xl font-bold text-blue-600 mt-2">0</p>
+        </div>
+        <div class="bg-white p-6 rounded-xl shadow-md text-center">
+            <h2 class="text-lg font-semibold text-gray-700">Sales Reports</h2>
+            <p id="salesReports" class="text-3xl font-bold text-green-600 mt-2">0</p>
+        </div>
+        <div class="bg-white p-6 rounded-xl shadow-md text-center">
+            <h2 class="text-lg font-semibold text-gray-700">Inventory Reports</h2>
+            <p id="inventoryReports" class="text-3xl font-bold text-purple-600 mt-2">0</p>
+        </div>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="bg-white p-6 rounded-xl shadow-md">
-            <h2 class="text-lg font-semibold">Monthly Sales Report</h2>
-            <canvas id="monthlySalesChart"></canvas>
-        </div>
-        <div class="bg-white p-6 rounded-xl shadow-md">
-            <h2 class="text-lg font-semibold">Inventory Levels</h2>
-            <canvas id="inventoryChart"></canvas>
-        </div>
+    {{-- Reports Table --}}
+    <div class="bg-white p-6 rounded-xl shadow-md mt-8">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">📋 Latest Reports</h2>
+        <table class="w-full border-collapse">
+            <thead>
+                <tr class="bg-gray-100 text-gray-700">
+                    <th class="p-3 text-left">Report Name</th>
+                    <th class="p-3 text-left">Type</th>
+                    <th class="p-3 text-left">Created At</th>
+                    <th class="p-3 text-left">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="reportTable"></tbody>
+        </table>
     </div>
+
 </div>
 
 <script>
-    new Chart(document.getElementById('monthlySalesChart'), {
-        type: 'line',
-        data: {
-            labels: ["Jan", "Feb", "Mar"],
-            datasets: [{ label: 'Sales ($)', data: [5000, 7000, 8000], borderColor: '#2563eb' }]
-        }
-    });
+    function fetchReportsData() {
+        fetch("{{ route('admin.reports.data') }}")
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('reportCount').innerText = data.totalReports;
+                document.getElementById('salesReports').innerText = data.salesReports;
+                document.getElementById('inventoryReports').innerText = data.inventoryReports;
 
-    new Chart(document.getElementById('inventoryChart'), {
-        type: 'bar',
-        data: {
-            labels: ["Laptops", "Keyboards", "Mice"],
-            datasets: [{ label: 'Stock', data: [120, 80, 60], backgroundColor: '#16a34a' }]
-        }
-    });
+                let table = document.getElementById('reportTable');
+                table.innerHTML = "";
+                data.reports.forEach(r => {
+                    let row = `<tr class="border-b">
+                        <td class="p-3">${r.name}</td>
+                        <td class="p-3">${r.type}</td>
+                        <td class="p-3">${r.created_at}</td>
+                        <td class="p-3">
+                            <a href="/admin/reports/view/${r.id}" class="text-blue-600 hover:underline">👁 View</a>
+                            <a href="/admin/reports/delete/${r.id}" class="text-red-600 hover:underline ml-2">✖ Delete</a>
+                        </td>
+                    </tr>`;
+                    table.innerHTML += row;
+                });
+            })
+            .catch(err => console.error("Error:", err));
+    }
+
+    fetchReportsData();
+    setInterval(fetchReportsData, 10000);
 </script>
 @endsection

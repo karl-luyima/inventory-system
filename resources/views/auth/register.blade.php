@@ -3,72 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register | Admin Panel</title>
-
-    {{-- Include Tailwind + custom CSS --}}
-    @vite([
-        'resources/css/app.css',
-        'resources/css/custom.css',
-        'resources/js/app.js'
-    ])
+    <title>Register</title>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="flex items-center justify-center min-h-screen bg-gray-100 font-sans">
 
-    <div class="w-full max-w-md bg-white p-10 rounded-2xl shadow-xl">
-        <h2 class="text-4xl font-extrabold mb-6 text-center text-green-600">Create Account</h2>
+    <div class="w-full max-w-md bg-white p-10 rounded-2xl shadow-lg">
+        <h2 class="text-3xl font-extrabold mb-2 text-center text-green-600">Create Account</h2>
+        <p class="text-center text-gray-600 mb-6">Fill in your details to get started</p>
 
-        {{-- Display validation errors --}}
         @if($errors->any())
             <div class="mb-4 text-red-600 text-sm text-center">
                 {{ $errors->first() }}
             </div>
         @endif
 
-        {{-- Registration Form --}}
         <form method="POST" action="{{ route('register.submit') }}" class="space-y-5">
             @csrf
 
             <!-- Full Name -->
             <div>
-                <label class="block text-gray-600 mb-1">Full Name</label>
-                <input type="text" name="name"
-                       class="w-full px-5 py-3 border rounded-xl focus:outline-none focus:ring-4 focus:ring-green-300"
-                       placeholder="Enter your full name"
+                <label for="name" class="block text-gray-700 font-medium mb-1">Full Name</label>
+                <input id="name" type="text" name="name" placeholder="Enter your full name"
+                       class="w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400"
                        required>
             </div>
 
             <!-- Email -->
             <div>
-                <label class="block text-gray-600 mb-1">Email</label>
-                <input type="email" name="email"
-                       class="w-full px-5 py-3 border rounded-xl focus:outline-none focus:ring-4 focus:ring-green-300"
-                       placeholder="Enter your email"
+                <label for="email" class="block text-gray-700 font-medium mb-1">Email</label>
+                <input id="email" type="email" name="email" placeholder="Enter your email address"
+                       class="w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400"
                        required>
             </div>
 
             <!-- Password -->
             <div>
-                <label class="block text-gray-600 mb-1">Password</label>
-                <input type="password" name="password"
-                       class="w-full px-5 py-3 border rounded-xl focus:outline-none focus:ring-4 focus:ring-green-300"
-                       placeholder="Enter password"
+                <label for="password" class="block text-gray-700 font-medium mb-1">Password</label>
+                <input id="password" type="password" name="password" placeholder="Create a password"
+                       class="w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400"
                        required>
             </div>
 
             <!-- Confirm Password -->
             <div>
-                <label class="block text-gray-600 mb-1">Confirm Password</label>
-                <input type="password" name="password_confirmation"
-                       class="w-full px-5 py-3 border rounded-xl focus:outline-none focus:ring-4 focus:ring-green-300"
-                       placeholder="Confirm password"
+                <label for="password_confirmation" class="block text-gray-700 font-medium mb-1">Confirm Password</label>
+                <input id="password_confirmation" type="password" name="password_confirmation" placeholder="Confirm your password"
+                       class="w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400"
                        required>
             </div>
 
             <!-- Role -->
             <div>
-                <label class="block text-gray-600 mb-1">Role</label>
-                <select name="role"
-                        class="w-full px-5 py-3 border rounded-xl focus:outline-none focus:ring-4 focus:ring-green-300"
+                <label for="role" class="block text-gray-700 font-medium mb-1">Role</label>
+                <select id="role" name="role"
+                        class="w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-green-400"
                         required>
                     <option value="">-- Select Role --</option>
                     <option value="administrator">Administrator</option>
@@ -77,15 +66,13 @@
                 </select>
             </div>
 
-            <!-- Submit Button -->
             <button type="submit"
                     class="w-full bg-green-600 text-white py-3 rounded-xl hover:bg-green-700 transition duration-300 font-semibold shadow-md hover:scale-105">
                 Register
             </button>
         </form>
 
-        <!-- Login Link -->
-        <p class="mt-6 text-sm text-gray-500 text-center">
+        <p class="mt-6 text-sm text-gray-600 text-center">
             Already have an account?
             <a href="{{ route('login') }}" class="text-green-600 hover:underline font-medium">Login</a>
         </p>

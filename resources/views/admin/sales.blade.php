@@ -1,41 +1,49 @@
 @extends('layouts.admin')
 
+@section('title', 'Sales Dashboard')
+@section('page-title', '💰 Sales Dashboard')
+
 @section('content')
 <div class="p-8 space-y-6">
-    <h1 class="text-2xl font-bold text-gray-700">💵 Manage Sales</h1>
 
-    <div class="bg-white p-6 rounded-xl shadow-md">
-        <table class="w-full border">
-            <thead class="bg-gray-100">
-                <tr>
-                    <th class="p-2 border">Sale ID</th>
-                    <th class="p-2 border">Product</th>
-                    <th class="p-2 border">Quantity</th>
-                    <th class="p-2 border">Amount</th>
-                    <th class="p-2 border">Date</th>
-                </tr>
-            </thead>
-            <tbody>
-                @forelse($sales as $sale)
-                <tr>
-                    <td class="p-2 border">{{ $sale->id }}</td>
-                    <td class="p-2 border">{{ $sale->product->name ?? 'N/A' }}</td>
-                    <td class="p-2 border">{{ $sale->quantity }}</td>
-                    <td class="p-2 border">${{ number_format($sale->amount, 2) }}</td>
-                    <td class="p-2 border">{{ $sale->created_at->format('Y-m-d') }}</td>
-                </tr>
-                @empty
-                <tr>
-                    <td colspan="5" class="p-4 text-center text-gray-500">No sales records found.</td>
-                </tr>
-                @endforelse
-            </tbody>
-        </table>
-
-        {{-- Pagination --}}
-        <div class="mt-4">
-            {{ $sales->links() }}
+    {{-- Sales Overview --}}
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-white p-6 rounded-xl shadow-md text-center">
+            <h2 class="text-lg font-semibold text-gray-700">Today’s Sales</h2>
+            <p id="todaySales" class="text-3xl font-bold text-blue-600 mt-2">0</p>
+        </div>
+        <div class="bg-white p-6 rounded-xl shadow-md text-center">
+            <h2 class="text-lg font-semibold text-gray-700">This Week</h2>
+            <p id="weekSales" class="text-3xl font-bold text-green-600 mt-2">0</p>
+        </div>
+        <div class="bg-white p-6 rounded-xl shadow-md text-center">
+            <h2 class="text-lg font-semibold text-gray-700">This Month</h2>
+            <p id="monthSales" class="text-3xl font-bold text-purple-600 mt-2">0</p>
         </div>
     </div>
+
+    {{-- Sales Chart Placeholder --}}
+    <div class="bg-white p-6 rounded-xl shadow-md mt-8">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">📈 Sales Trend</h2>
+        <canvas id="salesChart"></canvas>
+    </div>
+
 </div>
+
+<script>
+    function fetchSalesData() {
+        fetch("{{ route('admin.sales.data') }}")
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('todaySales').innerText = data.todaySales;
+                document.getElementById('weekSales').innerText = data.weekSales;
+                document.getElementById('monthSales').innerText = data.monthSales;
+                // TODO: update chart with data.chart
+            })
+            .catch(err => console.error("Error:", err));
+    }
+
+    fetchSalesData();
+    setInterval(fetchSalesData, 10000);
+</script>
 @endsection

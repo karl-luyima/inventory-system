@@ -12,6 +12,13 @@ use App\Models\Kpi;
 class AdminController extends Controller
 {
     // ================= Users =================
+
+
+    public function home()
+    {
+        return view('admin.home');
+    }
+
     public function users(Request $request)
     {
         // Handle filter

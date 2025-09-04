@@ -13,6 +13,13 @@ use App\Models\SalesAnalyst;
 
 class LoginController extends Controller
 {
+    // Show login form
+    public function showLogin()
+    {
+        return view('auth.login');
+    }
+
+    // Handle login
     public function login(Request $request)
     {
         $request->validate([
@@ -20,19 +27,17 @@ class LoginController extends Controller
             'password' => 'required',
         ]);
 
-        // Find user
         $user = User::where('user_id', $request->user_id)->first();
 
         if (!$user || !Hash::check($request->password, $user->password)) {
             return back()->withErrors(['login' => 'Invalid credentials.']);
         }
 
-        // Log the user in (session-based)
         Auth::login($user);
 
-        // Detect role automatically
+        // Redirect based on role
         if (Administrator::where('user_id', $user->user_id)->exists()) {
-            return redirect()->route('admin.dashboard');
+            return redirect()->route('admin.home'); // ✅ updated
         }
 
         if (InventoryClerk::where('user_id', $user->user_id)->exists()) {
@@ -43,8 +48,16 @@ class LoginController extends Controller
             return redirect()->route('analyst.dashboard');
         }
 
-        // If no role found, logout
         Auth::logout();
         return back()->withErrors(['login' => 'No role assigned to this account.']);
+    }
+
+    // Logout
+    public function logout(Request $request)
+    {
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+        return redirect()->route('login');
     }
 }

@@ -15,7 +15,19 @@ use App\Http\Controllers\DashboardController;
 */
 Route::get('/', function () {
     return redirect()->route('login'); // redirect root to login
+
 });
+
+
+// Login
+Route::get('/login', [LoginController::class, 'showLogin'])->name('login');
+Route::post('/login', [LoginController::class, 'login'])->name('login.submit');
+Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+
+// Register
+Route::get('/register', [RegisterController::class, 'showRegister'])->name('register');
+Route::post('/register', [RegisterController::class, 'registerSubmit'])->name('register.submit');
+
 
 /*
 |--------------------------------------------------------------------------
@@ -44,6 +56,7 @@ Route::get('/dashboard/data', [DashboardController::class, 'getData'])->name('da
 |--------------------------------------------------------------------------
 */
 Route::prefix('admin')->group(function () {
+    Route::get('/home', [AdminController::class, 'home'])->name('admin.home'); // ✅ added
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
 
     // Users
@@ -71,11 +84,10 @@ Route::prefix('admin')->group(function () {
     Route::get('/settings', [AdminController::class, 'settings'])->name('admin.settings');
 });
 
-/*
-|--------------------------------------------------------------------------
-| Inventory Clerk Routes
-|--------------------------------------------------------------------------
-*/
+
+//Inventory Clerk Routes
+
+
 Route::prefix('clerk')->group(function () {
     Route::get('/dashboard', [InventoryClerkController::class, 'dashboard'])->name('clerk.dashboard');
     Route::get('/search', [InventoryClerkController::class, 'search'])->name('clerk.search');

@@ -13,17 +13,19 @@ use Illuminate\Support\Facades\Hash;
 class RegisterController extends Controller
 {
     // Show registration form
-    public function showRegister() {
+    public function showRegister()
+    {
         return view('auth.register');
     }
 
     // Handle registration
-    public function registerSubmit(Request $request) {
+    public function registerSubmit(Request $request)
+    {
         $request->validate([
+            'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|confirmed|min:6',
-            'role' => 'required',
-            'name' => 'required|string|max:255'
+            'role' => 'required'
         ]);
 
         // Create new user
