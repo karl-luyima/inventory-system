@@ -13,13 +13,11 @@ use App\Models\Product;
 
 class AdminController extends Controller
 {
-    // ================= Dashboard / Home =================
+    // ================= Users & Dashboard =================
+
     public function home()
     {
-        // Total users
         $totalUsers = User::count();
-
-        // Total KPIs
         $activeKpis = Kpi::count();
 
         // --- Monthly Sales (this year) ---
@@ -51,40 +49,23 @@ class AdminController extends Controller
     }
 
     // ================= Users List =================
-    public function users(Request $request)
+    public function users()
     {
-        $status = $request->get('status', 'all');
-        $query = User::query();
-
-        if ($status === 'active') $query->where('active', 1);
-        elseif ($status === 'inactive') $query->where('active', 0);
-
-        $users = $query->paginate(10);
+        // Get all users who are NOT admins
+        $users = User::whereNotIn('user_id', Administrator::pluck('user_id'))->paginate(10);
 
         foreach ($users as $user) {
-            if (Administrator::where('user_id', $user->user_id)->exists()) $user->role = 'Administrator';
-            elseif (InventoryClerk::where('user_id', $user->user_id)->exists()) $user->role = 'Inventory Clerk';
+            if (InventoryClerk::where('user_id', $user->user_id)->exists()) $user->role = 'Inventory Clerk';
             elseif (SalesAnalyst::where('user_id', $user->user_id)->exists()) $user->role = 'Sales Analyst';
             else $user->role = 'Unknown';
         }
 
-        $totalUsers    = User::count();
-        $activeUsers   = User::where('active', 1)->count();
-        $inactiveUsers = User::where('active', 0)->count();
-
-        return view('admin.users', compact(
-            'users',
-            'totalUsers',
-            'activeUsers',
-            'inactiveUsers',
-            'status'
-        ));
+        return view('admin.users', compact('users'));
     }
 
     public function deleteUser($id)
     {
         $user = User::findOrFail($id);
-        Administrator::where('user_id', $user->user_id)->delete();
         InventoryClerk::where('user_id', $user->user_id)->delete();
         SalesAnalyst::where('user_id', $user->user_id)->delete();
         $user->delete();
@@ -108,7 +89,6 @@ class AdminController extends Controller
         ]);
 
         Kpi::create($request->only('title', 'value', 'color'));
-
         return redirect()->route('admin.kpis')->with('success', 'KPI added successfully!');
     }
 
@@ -116,7 +96,6 @@ class AdminController extends Controller
     {
         $kpi = Kpi::findOrFail($id);
         $kpi->delete();
-
         return redirect()->route('admin.kpis')->with('success', 'KPI removed successfully!');
     }
 
@@ -143,36 +122,70 @@ class AdminController extends Controller
     // ================= Inventory =================
     public function inventory()
     {
-        return view('admin.inventory'); // make sure this blade exists
+        return view('admin.inventory');
+    }
+
+    public function inventoryData()
+    {
+        $totalProducts = Product::count();
+        $lowStockItems = Product::where('stock', '<=', 5)
+                                ->get(['pdt_name as name', 'stock']);
+        $chartData = Product::select('pdt_name as name', 'stock')->get();
+
+        return response()->json([
+            'totalProducts' => $totalProducts,
+            'lowStockItems' => $lowStockItems,
+            'chart' => $chartData
+        ]);
     }
 
     // ================= Sales =================
     public function sales()
     {
-        return view('admin.sales'); // sales.blade.php
+        return view('admin.sales');
+    }
+
+    public function salesData()
+    {
+        // Example: return monthly sales data for AJAX
+        $monthlySales = Sale::selectRaw('MONTH(`date`) as month, SUM(totalAmount) as total')
+            ->whereYear('date', date('Y'))
+            ->groupBy('month')
+            ->orderBy('month')
+            ->pluck('total', 'month');
+
+        $salesData = [];
+        for ($i = 1; $i <= 12; $i++) $salesData[$i] = $monthlySales[$i] ?? 0;
+
+        return response()->json(['salesData' => $salesData]);
     }
 
     // ================= Reports =================
     public function reports()
     {
-        return view('admin.reports'); // reports.blade.php
+        return view('admin.reports');
+    }
+
+    public function reportsData()
+    {
+        // Example: return report data for AJAX
+        $reports = Sale::latest()->take(20)->get();
+        return response()->json(['reports' => $reports]);
     }
 
     public function downloadReport()
     {
-        // implement report download logic if needed
-        return back()->with('success', 'Download feature not implemented yet.');
+        return response()->download(storage_path('reports/sample-report.pdf'));
     }
 
     // ================= Settings =================
     public function settings()
     {
-        return view('admin.settings'); // settings.blade.php
+        return view('admin.settings');
     }
 
-    // ================= Optional Dashboard Page =================
     public function dashboard()
     {
-        return redirect()->route('admin.home'); // simple redirect for /dashboard
+        return redirect()->route('admin.home');
     }
 }

@@ -63,10 +63,20 @@
     <div class="flex-1 md:ml-64 flex flex-col min-h-screen">
         <!-- Topbar -->
         <header class="flex justify-between items-center bg-white shadow px-6 py-4 sticky top-0 z-10">
+            <!-- User Info -->
             <div class="text-right">
                 <strong class="block text-gray-800">{{ session('user_name') ?? 'Admin' }}</strong>
                 <span class="text-gray-500 text-sm">{{ session('role') ?? 'Administrator' }}</span>
             </div>
+
+            <!-- Logout Button -->
+            <form action="{{ route('logout') }}" method="POST">
+                @csrf
+                <button type="submit"
+                    class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg shadow-md">
+                    Logout
+                </button>
+            </form>
         </header>
 
         <!-- Page Content -->

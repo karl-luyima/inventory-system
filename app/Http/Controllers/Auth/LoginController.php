@@ -37,7 +37,7 @@ class LoginController extends Controller
         ];
 
         foreach ($roles as $role => $model) {
-            $user = $model::where(function($query) use ($role, $email) {
+            $user = $model::where(function ($query) use ($role, $email) {
                 switch ($role) {
                     case 'admin':
                         $query->where('admin_email', $email);
@@ -54,7 +54,7 @@ class LoginController extends Controller
             if ($user && Hash::check($password, $user->password)) {
                 // Set session
                 Session::put('role', $role);
-                Session::put('user_name', $user->{$role.'_name'});
+                Session::put('user_name', $user->{$role . '_name'});
                 // Redirect to role-specific dashboard
                 $route = match ($role) {
                     'admin' => 'admin.home',
@@ -72,7 +72,13 @@ class LoginController extends Controller
     // Logout
     public function logout(Request $request)
     {
-        Session::flush();
+        // Clear all session data
+        $request->session()->flush();
+
+        // Regenerate CSRF token for security
+        $request->session()->regenerateToken();
+
+        // Redirect to login page
         return redirect()->route('login');
     }
 }
