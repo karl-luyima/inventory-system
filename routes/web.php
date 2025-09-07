@@ -80,6 +80,14 @@ Route::prefix('clerk')->group(function () {
 // Sales Analyst Routes
 // ------------------------
 Route::prefix('analyst')->group(function () {
-    Route::get('/dashboard', [SalesAnalystController::class, 'dashboard'])->name('analyst.dashboard');
-    Route::post('/sales', [SalesAnalystController::class, 'store'])->name('analyst.store');
+    Route::get('/dashboard', [SalesAnalystController::class, 'dashboard'])->name('sales.dashboard');
+
+    // Point to your existing views
+    Route::get('/sales/form', [SalesAnalystController::class, 'form'])->name('sales.form');
+    Route::get('/sales/reports', [SalesAnalystController::class, 'reports'])->name('sales.reports');
+    Route::get('/sales/report/pdf', [SalesAnalystController::class, 'downloadReport'])->name('sales.report.pdf');
+
+
+    // Store sales (AJAX or form)
+    Route::post('/sales/store', [SalesAnalystController::class, 'store'])->name('sales.store');
 });

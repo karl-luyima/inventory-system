@@ -10,14 +10,9 @@ class SalesAnalyst extends Model
     public $incrementing = true;
     protected $keyType = 'int';
 
-    protected $fillable = ['user_id', 'analyst_email', 'analyst_name'];
-
-
-    public function user() {
-        return $this->belongsTo(User::class, 'user_id');
-    }
-
-    public function reports() {
-        return $this->hasMany(SalesReport::class, 'analyst_id');
-    }
+    protected $fillable = [
+        'analyst_name',
+        'analyst_email',
+        'password',   
+    ];
 }

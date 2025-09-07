@@ -29,7 +29,6 @@ class LoginController extends Controller
         $email = $request->email;
         $password = $request->password;
 
-        // Array of roles and their models
         $roles = [
             'admin' => Administrator::class,
             'clerk' => InventoryClerk::class,
@@ -54,31 +53,25 @@ class LoginController extends Controller
             if ($user && Hash::check($password, $user->password)) {
                 // Set session
                 Session::put('role', $role);
-                Session::put('user_name', $user->{$role . '_name'});
-                // Redirect to role-specific dashboard
+                Session::put('name', $user->{$role . '_name'}); // ✅ changed to "name"
+
+                // Redirect
                 $route = match ($role) {
                     'admin' => 'admin.home',
                     'clerk' => 'clerk.dashboard',
-                    'analyst' => 'analyst.dashboard',
+                    'analyst' => 'sales.dashboard', // ✅ match Blade
                 };
                 return redirect()->route($route);
             }
         }
 
-        // Invalid credentials
         return back()->withErrors(['login' => 'Invalid email or password.'])->withInput();
     }
 
-    // Logout
     public function logout(Request $request)
     {
-        // Clear all session data
         $request->session()->flush();
-
-        // Regenerate CSRF token for security
         $request->session()->regenerateToken();
-
-        // Redirect to login page
         return redirect()->route('login');
     }
 }

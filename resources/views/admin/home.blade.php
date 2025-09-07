@@ -51,13 +51,13 @@
 <script>
     // --- Monthly Sales Line Chart ---
     const salesCtx = document.getElementById('salesChart').getContext('2d');
-    const salesChart = new Chart(salesCtx, {
+    new Chart(salesCtx, {
         type: 'line',
         data: {
-            labels: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+            labels: {!! json_encode($salesMonths) !!},
             datasets: [{
                 label: 'Monthly Sales',
-                data: {!! json_encode(array_values($salesData)) !!},
+                data: {!! json_encode($salesData) !!},
                 backgroundColor: 'rgba(59, 130, 246, 0.2)',
                 borderColor: 'rgba(59, 130, 246, 1)',
                 borderWidth: 2,
@@ -74,13 +74,13 @@
 
     // --- Top Products Bar Chart ---
     const productsCtx = document.getElementById('productsChart').getContext('2d');
-    const productsChart = new Chart(productsCtx, {
+    new Chart(productsCtx, {
         type: 'bar',
         data: {
-            labels: {!! json_encode($topProducts->keys()) !!},
+            labels: {!! json_encode($productNames) !!},
             datasets: [{
                 label: 'Quantity Sold',
-                data: {!! json_encode($topProducts->values()) !!},
+                data: {!! json_encode($productStock) !!},
                 backgroundColor: 'rgba(16, 185, 129, 0.7)',
                 borderColor: 'rgba(5, 150, 105, 1)',
                 borderWidth: 1
