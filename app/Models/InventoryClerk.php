@@ -10,7 +10,7 @@ class InventoryClerk extends Model
     public $incrementing = true;
     protected $keyType = 'int';
 
-    protected $fillable = ['user_id', 'clerk_email', 'clerk_name'];
+    protected $fillable = ['user_id', 'clerk_email', 'clerk_name', 'password'];
 
 
     public function user() {

@@ -11,7 +11,7 @@ return new class extends Migration {
             $table->increments('clerk_id');
             $table->string('clerk_name', 255);
             $table->string('clerk_email', 255)->unique();
-            $table->string('password');
+            $table->string('password'); // required password
             $table->timestamps();
         });
     }
