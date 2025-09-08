@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\InventoryClerk;
 use Illuminate\Support\Facades\Hash;
+use App\Models\Kpi;
 
 class InventoryClerkController extends Controller
 {
@@ -13,17 +14,17 @@ class InventoryClerkController extends Controller
     public function dashboard()
     {
         $products = Product::all();
-        return view('clerk.dashboard', compact('products'));
+        return view('inventory.dashboard', compact('products'));
     }
 
     // ================= Search Products =================
     public function search(Request $request)
     {
-        $products = Product::where('name', 'like', '%' . $request->search . '%')
-                            ->orWhere('pdt_id', 'like', '%' . $request->search . '%')
-                            ->get();
+        $products = Product::where('pdt_name', 'like', '%' . $request->search . '%')
+            ->orWhere('pdt_id', 'like', '%' . $request->search . '%')
+            ->get();
 
-        return view('clerk.dashboard', compact('products'));
+        return view('inventory.dashboard', compact('products'));
     }
 
     // ================= Update Stock =================
@@ -34,7 +35,7 @@ class InventoryClerkController extends Controller
         ]);
 
         $product = Product::findOrFail($id);
-        $product->stock = $request->stock;
+        $product->stock_level = $request->stock;
         $product->save();
 
         return redirect()->route('clerk.dashboard')->with('success', 'Stock updated successfully.');
@@ -52,10 +53,17 @@ class InventoryClerkController extends Controller
         InventoryClerk::create([
             'clerk_name' => $request->clerk_name,
             'clerk_email' => $request->clerk_email,
-            'password' => Hash::make($request->password), // hash password
+            'password' => Hash::make($request->password),
         ]);
 
         return redirect()->back()->with('success', 'Inventory clerk created successfully.');
+    }
+
+    // ================= View Dashboard Metrics =================
+    public function metrics()
+    {
+        $kpis = Kpi::all();
+        return view('inventory.metrics', compact('kpis'));
     }
 
     // ================= Redirect to Dashboard =================

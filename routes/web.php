@@ -67,14 +67,15 @@ Route::prefix('admin')->group(function () {
     Route::get('/settings', [AdminController::class, 'settings'])->name('admin.settings');
 });
 
-// ------------------------
-// Inventory Clerk Routes
-// ------------------------
 Route::prefix('clerk')->group(function () {
     Route::get('/dashboard', [InventoryClerkController::class, 'dashboard'])->name('clerk.dashboard');
     Route::get('/search', [InventoryClerkController::class, 'search'])->name('clerk.search');
     Route::put('/update-stock/{id}', [InventoryClerkController::class, 'updateStock'])->name('clerk.updateStock');
+
+    Route::get('/metrics', [InventoryClerkController::class, 'metrics'])->name('clerk.metrics');
+
 });
+
 
 // ------------------------
 // Sales Analyst Routes
