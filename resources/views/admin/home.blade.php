@@ -92,5 +92,5 @@
             scales: { y: { beginAtZero: true } }
         }
     });
-</script>
+</script>  
 @endsection
