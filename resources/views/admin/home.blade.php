@@ -7,7 +7,7 @@
     <!-- Header -->
     <div class="flex justify-between items-center mb-6">
         <h1 class="text-2xl font-bold text-gray-800">
-            Welcome, {{ session('user_name', 'Admin') }} 👋
+            Welcome, {{ session('name', 'Admin') }} ({{ ucfirst(session('role', 'Admin')) }}) 👋
         </h1>
         <form action="{{ route('logout') }}" method="POST">
             @csrf

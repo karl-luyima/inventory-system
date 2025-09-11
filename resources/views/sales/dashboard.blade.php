@@ -4,6 +4,20 @@
 @section('page-title', '📊 Sales Analyst Dashboard')
 
 @section('content')
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-gray-800">
+            Welcome, {{ session('name', 'Sales Analyst') }} (Sales Analyst) 👋
+        </h1>
+        <form action="{{ route('logout') }}" method="POST">
+            @csrf
+            <button type="submit"
+                class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg shadow-md">
+                Logout
+            </button>
+        </form>
+    </div>
+
     <!-- Record New Sale -->
     <div class="bg-white p-6 rounded-lg shadow mb-8">
         <h2 class="text-lg font-semibold mb-4">➕ Record New Sale</h2>
