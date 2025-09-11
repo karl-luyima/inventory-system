@@ -1,60 +1,54 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Admin Dashboard')</title>
 
-    {{-- Load Tailwind CSS + JS via Vite --}}
+    {{-- Tailwind via Vite --}}
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
-    {{-- Optional Google Icons --}}
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+    {{-- Lucide Icons --}}
+    <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 
 <body class="flex min-h-screen bg-gray-50 font-sans">
     <!-- Sidebar -->
-    <aside
-        class="w-64 bg-white border-r border-gray-200 shadow-lg fixed md:relative h-full md:h-screen flex flex-col p-6 space-y-6">
-        <h2 class="text-2xl font-bold text-blue-600 border-b border-gray-200 pb-3">
-            Dashboard
+    <aside id="sidebar"
+        class="w-64 bg-white border-r border-gray-200 shadow-lg fixed md:relative h-full md:h-screen flex flex-col p-6 space-y-6 transform -translate-x-full md:translate-x-0 transition-transform duration-200 ease-in-out z-20">
+        <h2 class="text-2xl font-bold text-blue-600 border-b border-gray-200 pb-3 flex items-center gap-2">
+            <i data-lucide="layout-dashboard"></i> Dashboard
         </h2>
         <nav class="flex flex-col gap-2">
             <a href="{{ route('admin.inventory') }}"
-                class="px-4 py-2 rounded-lg font-medium 
+                class="flex items-center gap-2 px-4 py-2 rounded-lg font-medium
                 {{ request()->routeIs('admin.inventory') ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-blue-100 hover:text-blue-600' }}">
-                📦 Inventory
+                <i data-lucide="package"></i> Inventory
             </a>
-
             <a href="{{ route('admin.sales') }}"
-                class="px-4 py-2 rounded-lg font-medium 
+                class="flex items-center gap-2 px-4 py-2 rounded-lg font-medium
                 {{ request()->routeIs('admin.sales') ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-blue-100 hover:text-blue-600' }}">
-                💰 Sales
+                <i data-lucide="dollar-sign"></i> Sales
             </a>
-
             <a href="{{ route('admin.users') }}"
-                class="px-4 py-2 rounded-lg font-medium 
+                class="flex items-center gap-2 px-4 py-2 rounded-lg font-medium
                 {{ request()->routeIs('admin.users') ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-blue-100 hover:text-blue-600' }}">
-                👥 Users
+                <i data-lucide="users"></i> Users
             </a>
-
             <a href="{{ route('admin.kpis') }}"
-                class="px-4 py-2 rounded-lg font-medium 
+                class="flex items-center gap-2 px-4 py-2 rounded-lg font-medium
                 {{ request()->routeIs('admin.kpis*') ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-blue-100 hover:text-blue-600' }}">
-                📈 KPIs
+                <i data-lucide="bar-chart-3"></i> KPIs
             </a>
-
             <a href="{{ route('admin.reports') }}"
-                class="px-4 py-2 rounded-lg font-medium 
+                class="flex items-center gap-2 px-4 py-2 rounded-lg font-medium
                 {{ request()->routeIs('admin.reports*') ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-blue-100 hover:text-blue-600' }}">
-                📑 Reports
+                <i data-lucide="file-text"></i> Reports
             </a>
-
             <a href="{{ route('admin.settings') }}"
-                class="px-4 py-2 rounded-lg font-medium 
+                class="flex items-center gap-2 px-4 py-2 rounded-lg font-medium
                 {{ request()->routeIs('admin.settings') ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-blue-100 hover:text-blue-600' }}">
-                ⚙️ Settings
+                <i data-lucide="settings"></i> Settings
             </a>
         </nav>
     </aside>
@@ -63,6 +57,11 @@
     <div class="flex-1 md:ml-64 flex flex-col min-h-screen">
         <!-- Topbar -->
         <header class="flex justify-between items-center bg-white shadow px-6 py-4 sticky top-0 z-10">
+            <!-- Sidebar Toggle (Mobile) -->
+            <button id="sidebarToggle" class="md:hidden text-gray-600">
+                <i data-lucide="menu"></i>
+            </button>
+
             <!-- User Info -->
             <div class="text-right">
                 <strong class="block text-gray-800">{{ session('user_name') ?? 'Admin' }}</strong>
@@ -70,7 +69,7 @@
             </div>
 
             <!-- Logout Button -->
-            <form action="{{ route('logout') }}" method="POST">
+            <form action="{{ route('logout') }}" method="POST" onsubmit="return confirm('Are you sure you want to logout?')">
                 @csrf
                 <button type="submit"
                     class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg shadow-md">
@@ -85,6 +84,16 @@
             @yield('content')
         </main>
     </div>
-</body>
 
+    <script>
+        // Sidebar toggle for mobile
+        document.getElementById('sidebarToggle').addEventListener('click', () => {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('-translate-x-full');
+        });
+
+        // Load Lucide icons
+        lucide.createIcons();
+    </script>
+</body>
 </html>
