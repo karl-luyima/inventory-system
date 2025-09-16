@@ -4,8 +4,8 @@
 @section('page-title', '📦 Inventory Dashboard')
 
 @section('content')
-<div class="p-8 space-y-6">
-
+<div class="max-w-5xl mx-auto space-y-8">
+    
     {{-- Inventory Overview --}}
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div class="bg-white p-6 rounded-xl shadow-md text-center">
@@ -21,9 +21,9 @@
     </div>
 
     {{-- Inventory Chart --}}
-    <div class="bg-white p-6 rounded-xl shadow-md mt-8">
+    <div class="bg-white p-6 rounded-xl shadow-md">
         <h2 class="text-xl font-semibold text-gray-800 mb-4">📊 Stock Distribution</h2>
-        <canvas id="inventoryChart"></canvas>
+        <canvas id="inventoryChart" class="w-full h-72"></canvas>
     </div>
 
 </div>
@@ -34,6 +34,7 @@
             .then(res => res.json())
             .then(data => {
                 document.getElementById('totalProducts').innerText = data.totalProducts;
+
                 let list = document.getElementById('lowStockList');
                 list.innerHTML = "";
                 if (data.lowStockItems.length > 0) {
@@ -45,6 +46,7 @@
                 } else {
                     list.innerHTML = "<li>No low stock items 🎉</li>";
                 }
+
                 // TODO: update chart with data.chart
             })
             .catch(err => console.error("Error:", err));

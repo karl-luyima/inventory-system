@@ -1,23 +1,9 @@
 @extends('layouts.admin')
 
 @section('title', 'Admin Home')
-@section('page-title', '⚙️ Admin Home')
 
 @section('content')
-    <!-- Header -->
-    <div class="flex justify-between items-center mb-6">
-        <h1 class="text-2xl font-bold text-gray-800">
-            Welcome, {{ session('name', 'Admin') }} ({{ ucfirst(session('role', 'Admin')) }}) 👋
-        </h1>
-        <form action="{{ route('logout') }}" method="POST">
-            @csrf
-            <button type="submit"
-                class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg shadow-md">
-                Logout
-            </button>
-        </form>
-    </div>
-
+<div class="max-w-6xl ml-10">
     <!-- Quick Info Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         <div class="bg-white p-6 rounded-xl shadow text-center">
@@ -44,6 +30,7 @@
             <canvas id="productsChart" class="w-full h-64"></canvas>
         </div>
     </div>
+</div>
 @endsection
 
 @section('scripts')

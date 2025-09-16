@@ -1,49 +1,75 @@
 @extends('layouts.admin')
 
 @section('title', 'Sales Dashboard')
-@section('page-title', '💰 Sales Dashboard')
+@section('page-title', '💰 Top Performing Products')
 
 @section('content')
-<div class="p-8 space-y-6">
+<div class="max-w-5xl mx-auto space-y-8">
 
-    {{-- Sales Overview --}}
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="bg-white p-6 rounded-xl shadow-md text-center">
-            <h2 class="text-lg font-semibold text-gray-700">Today’s Sales</h2>
-            <p id="todaySales" class="text-3xl font-bold text-blue-600 mt-2">0</p>
-        </div>
-        <div class="bg-white p-6 rounded-xl shadow-md text-center">
-            <h2 class="text-lg font-semibold text-gray-700">This Week</h2>
-            <p id="weekSales" class="text-3xl font-bold text-green-600 mt-2">0</p>
-        </div>
-        <div class="bg-white p-6 rounded-xl shadow-md text-center">
-            <h2 class="text-lg font-semibold text-gray-700">This Month</h2>
-            <p id="monthSales" class="text-3xl font-bold text-purple-600 mt-2">0</p>
-        </div>
-    </div>
-
-    {{-- Sales Chart Placeholder --}}
-    <div class="bg-white p-6 rounded-xl shadow-md mt-8">
-        <h2 class="text-xl font-semibold text-gray-800 mb-4">📈 Sales Trend</h2>
-        <canvas id="salesChart"></canvas>
+    {{-- Top Products Chart --}}
+    <div class="bg-white p-6 rounded-xl shadow-md">
+    
+        <canvas id="topProductsChart" class="w-full h-80"></canvas>
     </div>
 
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    function fetchSalesData() {
+    let chart;
+
+    function fetchTopProducts() {
         fetch("{{ route('admin.sales.data') }}")
             .then(res => res.json())
             .then(data => {
-                document.getElementById('todaySales').innerText = data.todaySales;
-                document.getElementById('weekSales').innerText = data.weekSales;
-                document.getElementById('monthSales').innerText = data.monthSales;
-                // TODO: update chart with data.chart
+                const labels = data.map(item => item.pdt_name);
+                const values = data.map(item => item.total_qty);
+
+                if (chart) {
+                    chart.destroy(); // refresh chart for real-time
+                }
+
+                const ctx = document.getElementById('topProductsChart').getContext('2d');
+                chart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Quantity Sold',
+                            data: values,
+                            backgroundColor: [
+                                '#3b82f6',
+                                '#10b981',
+                                '#f59e0b',
+                                '#ef4444',
+                                '#8b5cf6'
+                            ],
+                            borderRadius: 8
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: ctx => `${ctx.formattedValue} units`
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: { stepSize: 1 }
+                            }
+                        }
+                    }
+                });
             })
             .catch(err => console.error("Error:", err));
     }
 
-    fetchSalesData();
-    setInterval(fetchSalesData, 10000);
+    fetchTopProducts();
+    setInterval(fetchTopProducts, 10000); // refresh every 10s
 </script>
 @endsection

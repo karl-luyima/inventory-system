@@ -4,70 +4,51 @@
 @section('page-title', '📑 Reports Overview')
 
 @section('content')
-<div class="p-8 space-y-6">
+<div class="p-6 bg-white rounded-xl shadow-md">
+    <h2 class="text-lg font-semibold text-gray-800 mb-4">Sales Analyst Reports</h2>
 
-    {{-- Reports Summary --}}
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="bg-white p-6 rounded-xl shadow-md text-center">
-            <h2 class="text-lg font-semibold text-gray-700">Total Reports</h2>
-            <p id="reportCount" class="text-3xl font-bold text-blue-600 mt-2">0</p>
+    @if(session('success'))
+        <div class="bg-green-100 text-green-700 p-3 rounded mb-4">
+            {{ session('success') }}
         </div>
-        <div class="bg-white p-6 rounded-xl shadow-md text-center">
-            <h2 class="text-lg font-semibold text-gray-700">Sales Reports</h2>
-            <p id="salesReports" class="text-3xl font-bold text-green-600 mt-2">0</p>
-        </div>
-        <div class="bg-white p-6 rounded-xl shadow-md text-center">
-            <h2 class="text-lg font-semibold text-gray-700">Inventory Reports</h2>
-            <p id="inventoryReports" class="text-3xl font-bold text-purple-600 mt-2">0</p>
-        </div>
+    @endif
+
+    <table class="w-full table-auto border border-gray-200">
+        <thead class="bg-gray-100">
+            <tr>
+                <th class="px-4 py-2 border-b">#</th>
+                <th class="px-4 py-2 border-b text-left">Report Name</th>
+                <th class="px-4 py-2 border-b text-left">Created By</th>
+                <th class="px-4 py-2 border-b text-left">Created At</th>
+                <th class="px-4 py-2 border-b">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @forelse($reports as $index => $report)
+            <tr class="hover:bg-gray-50">
+                <td class="px-4 py-2 border-b">{{ $index + $reports->firstItem() }}</td>
+                <td class="px-4 py-2 border-b">{{ $report->name }}</td>
+                <td class="px-4 py-2 border-b">{{ ucfirst($report->creator_type) }} ID: {{ $report->creator_id }}</td>
+                <td class="px-4 py-2 border-b">{{ $report->created_at->format('d M Y, H:i') }}</td>
+                <td class="px-4 py-2 border-b text-center space-x-2">
+                    <a href="{{ route('admin.reports.view', $report->id) }}" class="text-blue-600 hover:underline">👁 View</a>
+                    <form action="{{ route('admin.reports.delete', $report->id) }}" method="POST" class="inline-block" onsubmit="return confirm('Are you sure?');">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="text-red-600 hover:underline">✖ Delete</button>
+                    </form>
+                </td>
+            </tr>
+            @empty
+            <tr>
+                <td colspan="5" class="text-center py-4 text-gray-500">No reports found.</td>
+            </tr>
+            @endforelse
+        </tbody>
+    </table>
+
+    <div class="mt-4">
+        {{ $reports->links() }}
     </div>
-
-    {{-- Reports Table --}}
-    <div class="bg-white p-6 rounded-xl shadow-md mt-8">
-        <h2 class="text-xl font-semibold text-gray-800 mb-4">📋 Latest Reports</h2>
-        <table class="w-full border-collapse">
-            <thead>
-                <tr class="bg-gray-100 text-gray-700">
-                    <th class="p-3 text-left">Report Name</th>
-                    <th class="p-3 text-left">Type</th>
-                    <th class="p-3 text-left">Created At</th>
-                    <th class="p-3 text-left">Actions</th>
-                </tr>
-            </thead>
-            <tbody id="reportTable"></tbody>
-        </table>
-    </div>
-
 </div>
-
-<script>
-    function fetchReportsData() {
-        fetch("{{ route('admin.reports.data') }}")
-            .then(res => res.json())
-            .then(data => {
-                document.getElementById('reportCount').innerText = data.totalReports;
-                document.getElementById('salesReports').innerText = data.salesReports;
-                document.getElementById('inventoryReports').innerText = data.inventoryReports;
-
-                let table = document.getElementById('reportTable');
-                table.innerHTML = "";
-                data.reports.forEach(r => {
-                    let row = `<tr class="border-b">
-                        <td class="p-3">${r.name}</td>
-                        <td class="p-3">${r.type}</td>
-                        <td class="p-3">${r.created_at}</td>
-                        <td class="p-3">
-                            <a href="/admin/reports/view/${r.id}" class="text-blue-600 hover:underline">👁 View</a>
-                            <a href="/admin/reports/delete/${r.id}" class="text-red-600 hover:underline ml-2">✖ Delete</a>
-                        </td>
-                    </tr>`;
-                    table.innerHTML += row;
-                });
-            })
-            .catch(err => console.error("Error:", err));
-    }
-
-    fetchReportsData();
-    setInterval(fetchReportsData, 10000);
-</script>
 @endsection

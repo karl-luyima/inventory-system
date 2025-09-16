@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
@@ -37,30 +36,31 @@ class LoginController extends Controller
 
         foreach ($roles as $role => $model) {
             $user = $model::where(function ($query) use ($role, $email) {
-                switch ($role) {
-                    case 'admin':
-                        $query->where('admin_email', $email);
-                        break;
-                    case 'clerk':
-                        $query->where('clerk_email', $email);
-                        break;
-                    case 'analyst':
-                        $query->where('analyst_email', $email);
-                        break;
-                }
+                $emailField = match ($role) {
+                    'admin' => 'admin_email',
+                    'clerk' => 'clerk_email',
+                    'analyst' => 'analyst_email',
+                };
+                $query->where($emailField, $email);
             })->first();
 
             if ($user && Hash::check($password, $user->password)) {
                 // Set session
                 Session::put('role', $role);
-                Session::put('name', $user->{$role . '_name'}); // ✅ changed to "name"
-
-                // Redirect
-                $route = match ($role) {
-                    'admin' => 'admin.home',
-                    'clerk' => 'clerk.dashboard',
-                    'analyst' => 'sales.dashboard', // ✅ match Blade
+                $nameField = match ($role) {
+                    'admin' => 'admin_name',
+                    'clerk' => 'clerk_name',
+                    'analyst' => 'analyst_name',
                 };
+                Session::put('name', $user->{$nameField});
+
+                // Redirect based on role
+                $route = match ($role) {
+                    'admin' => 'admin.dashboard',
+                    'clerk' => 'clerk.dashboard',
+                    'analyst' => 'sales.dashboard',
+                };
+
                 return redirect()->route($route);
             }
         }
@@ -68,6 +68,7 @@ class LoginController extends Controller
         return back()->withErrors(['login' => 'Invalid email or password.'])->withInput();
     }
 
+    // Logout
     public function logout(Request $request)
     {
         $request->session()->flush();
