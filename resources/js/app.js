@@ -1,5 +1,7 @@
+import './bootstrap';  
 import Chart from "chart.js/auto";
 
+// Sales Chart
 const salesCtx = document.getElementById("salesChart");
 if (salesCtx) {
     new Chart(salesCtx, {
@@ -18,6 +20,7 @@ if (salesCtx) {
     });
 }
 
+// Products Chart
 const productsCtx = document.getElementById("productsChart");
 if (productsCtx) {
     new Chart(productsCtx, {

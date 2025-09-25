@@ -16,6 +16,9 @@ class AdminController extends Controller
     // ================= Dashboard =================
     public function home()
     {
+        // Total users (clerks + analysts)
+        $totalUsers = InventoryClerk::count() + SalesAnalyst::count();
+
         $activeKpis = Kpi::count();
 
         $monthlySales = Sale::selectRaw('MONTH(`date`) as month, SUM(totalAmount) as total')
@@ -42,6 +45,7 @@ class AdminController extends Controller
         $productStock = $topProducts->pluck('total_qty');
 
         return view('admin.home', compact(
+            'totalUsers',
             'activeKpis',
             'salesData',
             'salesMonths',

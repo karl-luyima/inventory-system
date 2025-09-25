@@ -129,7 +129,8 @@ class SalesAnalystController extends Controller
 
         $generatedAt = now()->format('d M Y H:i');
 
-        $pdf = Pdf::loadView('sales.reports', compact(
+        // ✅ Fix: Generate the PDF
+        $pdf = Pdf::loadView('sales.report_pdf', compact(
             'sales',
             'topProducts',
             'totalSales',
@@ -137,6 +138,8 @@ class SalesAnalystController extends Controller
             'totalProducts',
             'generatedAt'
         ));
+
+        return $pdf->download('sales_report_' . now()->format('Ymd_His') . '.pdf');
 
         return $pdf->download('sales_report_' . now()->format('Ymd_His') . '.pdf');
     }

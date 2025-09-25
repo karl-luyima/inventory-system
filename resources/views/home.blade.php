@@ -11,7 +11,7 @@
         <h1 class="text-6xl md:text-7xl font-extrabold text-green-700 drop-shadow-lg">
             MySMEAccess
         </h1>
-        <p class="text-gray-700 text-lg md:text-xl">
+        <p class="text-gray-700 text-lg md:text-xl">  
             Simplifying SME management. Track products, manage inventory, and grow your business seamlessly.
         </p>
 

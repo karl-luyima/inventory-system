@@ -7,6 +7,28 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HomeController;
 
+
+
+use App\Http\Controllers\Auth\LoginController;
+
+// ------------------------
+// Authentication Routes
+// ------------------------
+Route::get('/login', [LoginController::class, 'showLogin'])->name('login');
+Route::post('/login', [LoginController::class, 'login'])->name('login.submit');
+Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+
+// (Optional) Register Routes
+// Route::get('/register', [RegisterController::class, 'showRegister'])->name('register');
+// Route::post('/register', [RegisterController::class, 'register'])->name('register.submit');
+
+use App\Http\Controllers\Auth\RegisterController;
+
+// Register
+Route::get('/register', [RegisterController::class, 'showRegister'])->name('register');
+Route::post('/register', [RegisterController::class, 'register'])->name('register.submit');
+
+
 // ------------------------
 // Public Landing Page
 // ------------------------
@@ -80,4 +102,7 @@ Route::prefix('analyst')->group(function () {
     // Generate reports
     Route::post('/sales/reports/generate', [SalesAnalystController::class, 'generateReport'])->name('sales.reports.generate');
     Route::post('/sales/generate-report', [SalesAnalystController::class, 'generateReport'])->name('sales.generateReport');
+
+    Route::get('/sales/download-report', [App\Http\Controllers\SalesAnalystController::class, 'downloadReport'])
+        ->name('sales.downloadReport');
 });
