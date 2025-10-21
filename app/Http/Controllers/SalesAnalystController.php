@@ -29,48 +29,71 @@ class SalesAnalystController extends Controller
         return view('sales.dashboard', compact('sales', 'topProducts'));
     }
 
-    // ================= Record a Sale =================
+    // ================= Record a Sale (AJAX endpoint) =================
     public function store(Request $request)
     {
         $request->validate([
-            'pdt_id' => 'required|exists:products,pdt_id',
+            'pdt_name' => 'required|string|max:255',
             'quantity' => 'required|numeric|min:1',
             'totalAmount' => 'required|numeric|min:0',
         ]);
 
-        $sale = Sale::create([
-            'pdt_id' => $request->pdt_id,
-            'quantity' => $request->quantity,
-            'totalAmount' => $request->totalAmount,
-        ]);
+        try {
+            // 1️⃣ Find or create product based on name
+            $product = Product::firstOrCreate(
+                ['pdt_name' => $request->pdt_name],
+                [
+                    'price' => 0,
+                    'stock_level' => 0,
+                    'inventory_id' => 1, // update if you use dynamic inventory IDs
+                ]
+            );
 
-        $topProducts = Sale::select('pdt_id')
-            ->selectRaw('SUM(quantity) as total_sold, SUM(totalAmount) as total_amount')
-            ->with('product')
-            ->groupBy('pdt_id')
-            ->orderByDesc('total_sold')
-            ->take(5)
-            ->get();
+            // 2️⃣ Record the sale
+            $sale = Sale::create([
+                'pdt_id' => $product->pdt_id,
+                'quantity' => $request->quantity,
+                'totalAmount' => $request->totalAmount,
+                'date' => now(),
+            ]);
 
-        $sales = Sale::with('product')->latest()->take(10)->get();
+            // 3️⃣ Refresh latest sales & top products for the dashboard
+            $sales = Sale::with('product')
+                ->orderBy('created_at', 'desc')
+                ->take(10)
+                ->get();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Sale recorded successfully!',
-            'topProducts' => $topProducts,
-            'sales' => $sales,
-        ]);
+            $topProducts = Sale::select('pdt_id')
+                ->selectRaw('SUM(quantity) as total_sold, SUM(totalAmount) as total_amount')
+                ->with('product')
+                ->groupBy('pdt_id')
+                ->orderByDesc('total_sold')
+                ->take(5)
+                ->get();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Sale recorded successfully!',
+                'sales' => $sales,
+                'topProducts' => $topProducts,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error saving sale: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 
     // ================= Generate Report =================
     public function generateReport(Request $request)
     {
-        $topProducts = $request->input('topProducts', []); // array of top products
+        $topProducts = $request->input('topProducts', []);
 
         $report = Report::create([
             'name' => 'Top Products Report ' . now()->format('d M Y H:i'),
             'creator_type' => 'analyst',
-            'creator_id' => 0, // no auth, default to 0
+            'creator_id' => 0,
             'data' => json_encode($topProducts),
         ]);
 
@@ -97,7 +120,6 @@ class SalesAnalystController extends Controller
         $totalSales = $sales->count();
         $totalRevenue = $sales->sum('totalAmount');
         $totalProducts = $sales->sum('quantity');
-
         $generatedAt = now()->format('d M Y H:i');
 
         return view('sales.reports', compact(
@@ -126,10 +148,8 @@ class SalesAnalystController extends Controller
         $totalSales = $sales->count();
         $totalRevenue = $sales->sum('totalAmount');
         $totalProducts = $sales->sum('quantity');
-
         $generatedAt = now()->format('d M Y H:i');
 
-        // ✅ Fix: Generate the PDF
         $pdf = Pdf::loadView('sales.report_pdf', compact(
             'sales',
             'topProducts',
@@ -138,8 +158,6 @@ class SalesAnalystController extends Controller
             'totalProducts',
             'generatedAt'
         ));
-
-        return $pdf->download('sales_report_' . now()->format('Ymd_His') . '.pdf');
 
         return $pdf->download('sales_report_' . now()->format('Ymd_His') . '.pdf');
     }

@@ -20,12 +20,6 @@
         </div>
     </div>
 
-    {{-- Inventory Chart --}}
-    <div class="bg-white p-6 rounded-xl shadow-md">
-        <h2 class="text-xl font-semibold text-gray-800 mb-4">📊 Stock Distribution</h2>
-        <canvas id="inventoryChart" class="w-full h-72"></canvas>
-    </div>
-
 </div>
 
 <script>
@@ -46,8 +40,6 @@
                 } else {
                     list.innerHTML = "<li>No low stock items 🎉</li>";
                 }
-
-                // TODO: update chart with data.chart
             })
             .catch(err => console.error("Error:", err));
     }
