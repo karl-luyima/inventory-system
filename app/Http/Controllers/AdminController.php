@@ -19,40 +19,16 @@ class AdminController extends Controller
         // Total users (clerks + analysts)
         $totalUsers = InventoryClerk::count() + SalesAnalyst::count();
 
+        // Active KPIs
         $activeKpis = Kpi::count();
 
-        $monthlySales = Sale::selectRaw('MONTH(`date`) as month, SUM(totalAmount) as total')
-            ->whereYear('date', date('Y'))
-            ->groupBy('month')
-            ->orderBy('month')
-            ->pluck('total', 'month');
-
-        $salesData = [];
-        $salesMonths = [];
-        for ($i = 1; $i <= 12; $i++) {
-            $salesMonths[] = date("M", mktime(0, 0, 0, $i, 1));
-            $salesData[] = $monthlySales[$i] ?? 0;
-        }
-
-        $topProducts = Sale::join('products', 'sales.pdt_id', '=', 'products.pdt_id')
-            ->selectRaw('products.pdt_name, SUM(sales.quantity) as total_qty')
-            ->groupBy('products.pdt_name')
-            ->orderByDesc('total_qty')
-            ->take(5)
-            ->get();
-
-        $productNames = $topProducts->pluck('pdt_name');
-        $productStock = $topProducts->pluck('total_qty');
-
+        // Only pass the variables needed for the dashboard
         return view('admin.home', compact(
             'totalUsers',
-            'activeKpis',
-            'salesData',
-            'salesMonths',
-            'productNames',
-            'productStock'
+            'activeKpis'
         ));
     }
+
 
     // ================= KPIs =================
     public function kpis()
@@ -201,8 +177,8 @@ class AdminController extends Controller
     {
         // Only sales analyst generated reports
         $reports = Report::where('creator_type', 'analyst')
-                         ->orderByDesc('created_at')
-                         ->paginate(10);
+            ->orderByDesc('created_at')
+            ->paginate(10);
 
         return view('admin.reports', compact('reports'));
     }
@@ -222,6 +198,20 @@ class AdminController extends Controller
 
         return redirect()->route('admin.reports')->with('success', 'Report deleted successfully!');
     }
+
+    public function topProducts()
+    {
+        // Get top 10 products by total quantity sold
+        $topProducts = Sale::join('products', 'sales.pdt_id', '=', 'products.pdt_id')
+            ->selectRaw('products.pdt_name, SUM(sales.quantity) as total_qty')
+            ->groupBy('products.pdt_name')
+            ->orderByDesc('total_qty')
+            ->take(10)
+            ->get();
+
+        return view('admin.top-products', compact('topProducts'));
+    }
+
 
     // ================= Settings =================
     public function settings()

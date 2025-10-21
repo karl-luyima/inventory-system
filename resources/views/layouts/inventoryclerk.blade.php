@@ -16,26 +16,35 @@
         <!-- Sidebar -->
         <aside id="sidebar"
             class="w-64 bg-green-700 text-white flex flex-col p-4 space-y-6 transform -translate-x-full md:translate-x-0 transition-transform duration-200 ease-in-out z-20 fixed md:relative h-full">
-            
+
             <h2 class="text-2xl font-bold mb-8 flex items-center gap-2">
                 <i data-lucide="boxes"></i> Inventory Clerk
             </h2>
 
+            <!-- Sidebar Menu -->
             <nav class="flex flex-col gap-2">
                 <a href="{{ route('clerk.dashboard') }}"
-                    class="flex items-center gap-2 px-3 py-2 rounded 
-                    {{ request()->routeIs('clerk.dashboard') 
-                        ? 'bg-green-900 text-white font-semibold' 
-                        : 'hover:bg-green-600' }}">
+                    class="flex items-center gap-2 px-3 py-2 rounded
+                    {{ request()->routeIs('clerk.dashboard') ? 'bg-green-900 text-white font-semibold' : 'hover:bg-green-600' }}">
                     <i data-lucide="layout-dashboard"></i> Dashboard
                 </a>
 
                 <a href="{{ route('clerk.metrics') }}"
-                    class="flex items-center gap-2 px-3 py-2 rounded 
-                    {{ request()->routeIs('clerk.metrics') 
-                        ? 'bg-green-900 text-white font-semibold' 
-                        : 'hover:bg-green-600' }}">
+                    class="flex items-center gap-2 px-3 py-2 rounded
+                    {{ request()->routeIs('clerk.metrics') ? 'bg-green-900 text-white font-semibold' : 'hover:bg-green-600' }}">
                     <i data-lucide="bar-chart-3"></i> View Dashboard Metrics
+                </a>
+
+                <a href="{{ route('products.create') }}"
+                    class="flex items-center gap-2 px-3 py-2 rounded
+                    {{ request()->routeIs('products.create') ? 'bg-green-900 text-white font-semibold' : 'hover:bg-green-600' }}">
+                    <i data-lucide="plus-square"></i> Add Product
+                </a>
+
+                <a href="{{ route('inventories.create') }}"
+                    class="flex items-center gap-2 px-3 py-2 rounded
+                    {{ request()->routeIs('inventories.create') ? 'bg-green-900 text-white font-semibold' : 'hover:bg-green-600' }}">
+                    <i data-lucide="archive"></i> Add Inventory
                 </a>
             </nav>
 

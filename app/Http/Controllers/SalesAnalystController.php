@@ -3,9 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Sale;
 use App\Models\Product;
-use App\Models\Report;
+use App\Models\Sale;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class SalesAnalystController extends Controller
@@ -13,43 +12,56 @@ class SalesAnalystController extends Controller
     // ================= Dashboard =================
     public function dashboard()
     {
+        // Latest 10 sales with product info
         $sales = Sale::with('product')
             ->orderBy('created_at', 'desc')
             ->take(10)
             ->get();
 
-        $topProducts = Sale::select('pdt_id')
-            ->selectRaw('SUM(quantity) as total_sold, SUM(totalAmount) as total_amount')
-            ->with('product')
-            ->groupBy('pdt_id')
-            ->orderByDesc('total_sold')
+        // Top 5 products by total quantity sold
+        $topProducts = Product::withSum('sales', 'quantity')
+            ->orderByDesc('sales_sum_quantity')
             ->take(5)
-            ->get();
+            ->get()
+            ->filter(fn($product) => $product->sales_sum_quantity > 0);
 
         return view('sales.dashboard', compact('sales', 'topProducts'));
     }
 
-    // ================= Record a Sale (AJAX endpoint) =================
+    // ================= Record a Sale =================
     public function store(Request $request)
     {
         $request->validate([
             'pdt_name' => 'required|string|max:255',
-            'quantity' => 'required|numeric|min:1',
+            'quantity' => 'required|integer|min:1',
             'totalAmount' => 'required|numeric|min:0',
+            'inventory_id' => 'required|exists:inventories,inventory_id',
         ]);
 
         try {
-            // 1️⃣ Find or create product based on name
+            // ✅ Find or create product under selected inventory
             $product = Product::firstOrCreate(
                 ['pdt_name' => $request->pdt_name],
                 [
-                    'price' => 0,
+                    'price' => $request->price ?? 0,
                     'stock_level' => 0,
-                    'inventory_id' => 1, // update if you use dynamic inventory IDs
+                    'inventory_id' => $request->inventory_id,
                 ]
             );
 
-            // 2️⃣ Record the sale
+            // ✅ Check stock availability
+            if ($product->stock_level < $request->quantity) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Not enough stock available for this sale.'
+                ], 400);
+            }
+
+            // ✅ Reduce stock
+            $product->stock_level -= $request->quantity;
+            $product->save();
+
+            // ✅ Record sale in sales table
             $sale = Sale::create([
                 'pdt_id' => $product->pdt_id,
                 'quantity' => $request->quantity,
@@ -57,19 +69,13 @@ class SalesAnalystController extends Controller
                 'date' => now(),
             ]);
 
-            // 3️⃣ Refresh latest sales & top products for the dashboard
-            $sales = Sale::with('product')
-                ->orderBy('created_at', 'desc')
-                ->take(10)
-                ->get();
-
-            $topProducts = Sale::select('pdt_id')
-                ->selectRaw('SUM(quantity) as total_sold, SUM(totalAmount) as total_amount')
-                ->with('product')
-                ->groupBy('pdt_id')
-                ->orderByDesc('total_sold')
+            // Refresh latest sales & top products
+            $sales = Sale::with('product')->orderBy('created_at', 'desc')->take(10)->get();
+            $topProducts = Product::withSum('sales', 'quantity')
+                ->orderByDesc('sales_sum_quantity')
                 ->take(5)
-                ->get();
+                ->get()
+                ->filter(fn($product) => $product->sales_sum_quantity > 0);
 
             return response()->json([
                 'success' => true,
@@ -77,6 +83,7 @@ class SalesAnalystController extends Controller
                 'sales' => $sales,
                 'topProducts' => $topProducts,
             ]);
+
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -85,37 +92,16 @@ class SalesAnalystController extends Controller
         }
     }
 
-    // ================= Generate Report =================
-    public function generateReport(Request $request)
-    {
-        $topProducts = $request->input('topProducts', []);
-
-        $report = Report::create([
-            'name' => 'Top Products Report ' . now()->format('d M Y H:i'),
-            'creator_type' => 'analyst',
-            'creator_id' => 0,
-            'data' => json_encode($topProducts),
-        ]);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Report generated successfully!',
-            'report_id' => $report->id,
-        ]);
-    }
-
     // ================= Reports View =================
     public function reports()
     {
         $sales = Sale::with('product')->latest()->get();
 
-        $topProducts = Sale::select('pdt_id')
-            ->selectRaw('SUM(quantity) as total_sold, SUM(totalAmount) as total_amount')
-            ->with('product')
-            ->groupBy('pdt_id')
-            ->orderByDesc('total_sold')
+        $topProducts = Product::withSum('sales', 'quantity')
+            ->orderByDesc('sales_sum_quantity')
             ->take(5)
-            ->get();
+            ->get()
+            ->filter(fn($product) => $product->sales_sum_quantity > 0);
 
         $totalSales = $sales->count();
         $totalRevenue = $sales->sum('totalAmount');
@@ -137,13 +123,11 @@ class SalesAnalystController extends Controller
     {
         $sales = Sale::with('product')->latest()->get();
 
-        $topProducts = Sale::select('pdt_id')
-            ->selectRaw('SUM(quantity) as total_sold, SUM(totalAmount) as total_amount')
-            ->with('product')
-            ->groupBy('pdt_id')
-            ->orderByDesc('total_sold')
+        $topProducts = Product::withSum('sales', 'quantity')
+            ->orderByDesc('sales_sum_quantity')
             ->take(5)
-            ->get();
+            ->get()
+            ->filter(fn($product) => $product->sales_sum_quantity > 0);
 
         $totalSales = $sales->count();
         $totalRevenue = $sales->sum('totalAmount');

@@ -105,4 +105,25 @@ Route::prefix('analyst')->group(function () {
 
     Route::get('/sales/download-report', [App\Http\Controllers\SalesAnalystController::class, 'downloadReport'])
         ->name('sales.downloadReport');
+
+
+    Route::post('/clerk/save-sale', [InventoryClerkController::class, 'saveSale'])->name('clerk.saveSale');
+
+
+    // Show create product form
+    Route::get('/products/create', [InventoryClerkController::class, 'createProduct'])->name('products.create');
+
+    // Store new product
+    Route::post('/products', [InventoryClerkController::class, 'storeProduct'])->name('products.store');
+
+
+    // Show create inventory form
+    Route::get('/inventories/create', [InventoryClerkController::class, 'createInventory'])->name('inventories.create');
+
+    // Store new inventory
+    Route::post('/inventories', [InventoryClerkController::class, 'storeInventory'])->name('inventories.store');
+
+
+    // Top Products
+    Route::get('/top-products', [AdminController::class, 'topProducts'])->name('admin.topProducts');
 });
