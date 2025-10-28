@@ -4,8 +4,6 @@
 
 @section('content')
 <div class="bg-white p-6 rounded shadow max-w-5xl mx-auto space-y-6">
-    <h2 class="text-xl font-semibold mb-4">Top Performing Products</h2>
-
     <!-- Chart -->
     <div class="bg-gray-50 p-4 rounded shadow mb-6">
         <canvas id="topProductsChart" class="w-full h-64"></canvas>

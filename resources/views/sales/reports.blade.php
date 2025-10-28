@@ -1,134 +1,98 @@
 @extends('layouts.salesanalyst')
 
-@section('title', 'Sales Report')
-@section('page-title', '📄 Sales Report')
+@section('page-title', 'Sales Reports')
 
 @section('content')
-<div class="bg-white p-6 rounded-lg shadow mb-8">
+<div class="max-w-7xl mx-auto p-6 bg-white rounded shadow">
 
-    <!-- Download Button -->
-    <div class="flex justify-end mb-4">
-        <a href="{{ route('sales.downloadReport') }}"
-            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow">
-            ⬇️ Download PDF
+    {{-- Header with Download Button --}}
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-semibold">Sales Reports</h2>
+        <a href="{{ route('sales.downloadReport') }}" 
+           class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700" 
+           target="_blank">
+            Download PDF
         </a>
     </div>
 
-    <h2 class="text-lg font-semibold mb-4">
-        Report Generated: <span id="generatedAt">{{ $generatedAt ?? now()->format('d M Y H:i') }}</span>
-    </h2>
-
-    <!-- Summary -->
-    <div class="grid grid-cols-3 gap-4 mb-6">
-        <div class="bg-gray-100 p-4 rounded-lg text-center">
-            <h3 class="text-sm font-medium">Total Sales</h3>
-            <p class="text-lg font-bold" id="totalSales">{{ $totalSales }}</p>
+    {{-- Summary Cards --}}
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <div class="p-4 bg-gray-100 rounded shadow">
+            <div class="text-gray-500">Total Sales</div>
+            <div class="text-xl font-bold">{{ $totalSales }}</div>
         </div>
-        <div class="bg-gray-100 p-4 rounded-lg text-center">
-            <h3 class="text-sm font-medium">Total Revenue</h3>
-            <p class="text-lg font-bold" id="totalRevenue">Ksh {{ number_format($totalRevenue, 2) }}</p>
+        <div class="p-4 bg-gray-100 rounded shadow">
+            <div class="text-gray-500">Total Revenue</div>
+            <div class="text-xl font-bold">Ksh {{ number_format($totalRevenue, 2) }}</div>
         </div>
-        <div class="bg-gray-100 p-4 rounded-lg text-center">
-            <h3 class="text-sm font-medium">Products Sold</h3>
-            <p class="text-lg font-bold" id="totalProducts">{{ $totalProducts }}</p>
+        <div class="p-4 bg-gray-100 rounded shadow">
+            <div class="text-gray-500">Products Sold</div>
+            <div class="text-xl font-bold">{{ $totalProducts }}</div>
         </div>
     </div>
 
-    <!-- Top Products Chart -->
-    <div class="mb-6">
-        <h3 class="text-md font-semibold mb-2">🔥 Top Performing Products</h3>
-        <canvas id="topProductsChart" width="400" height="200"></canvas>
-    </div>
+    {{-- Top Products Chart --}}
+    <h3 class="text-lg font-semibold mb-2">🔥 Top 5 Best-Selling Products</h3>
+    <canvas id="topProductsChart" height="200"></canvas>
 
-    <!-- Detailed Sales Table -->
-    <div>
-        <h3 class="text-md font-semibold mb-2">🕒 Detailed Sales</h3>
-        <table class="min-w-full border border-gray-200 rounded-lg overflow-x-auto">
-            <thead class="bg-gray-100">
-                <tr>
-                    <th class="px-4 py-2 text-left text-sm font-medium text-gray-700">Product</th>
-                    <th class="px-4 py-2 text-left text-sm font-medium text-gray-700">Quantity</th>
-                    <th class="px-4 py-2 text-left text-sm font-medium text-gray-700">Amount</th>
-                    <th class="px-4 py-2 text-left text-sm font-medium text-gray-700">Date</th>
-                </tr>
-            </thead>
-            <tbody id="salesTable" class="divide-y divide-gray-200">
-                @foreach ($sales as $sale)
-                <tr>
-                    <td class="px-4 py-2">{{ $sale->product->pdt_name ?? 'Unknown' }}</td>
-                    <td class="px-4 py-2">{{ $sale->quantity }}</td>
-                    <td class="px-4 py-2">Ksh {{ number_format($sale->totalAmount, 2) }}</td>
-                    <td class="px-4 py-2">{{ $sale->created_at->format('d M Y H:i') }}</td>
-                </tr>
-                @endforeach
-            </tbody>
-        </table>
-    </div>
+    {{-- Detailed Sales Table --}}
+    <h3 class="text-lg font-semibold mb-2 mt-6">Detailed Sales</h3>
+    <table class="w-full table-auto border border-gray-300">
+        <thead class="bg-gray-200">
+            <tr>
+                <th class="border px-2 py-1">Product</th>
+                <th class="border px-2 py-1">Quantity</th>
+                <th class="border px-2 py-1">Amount</th>
+                <th class="border px-2 py-1">Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach ($sales as $sale)
+            <tr>
+                <td class="border px-2 py-1">{{ $sale->product->pdt_name ?? 'Unknown' }}</td>
+                <td class="border px-2 py-1">{{ $sale->quantity }}</td>
+                <td class="border px-2 py-1">Ksh {{ number_format($sale->totalAmount, 2) }}</td>
+                <td class="border px-2 py-1">{{ $sale->created_at->format('d M Y H:i') }}</td>
+            </tr>
+            @endforeach
+        </tbody>
+    </table>
 </div>
 
-<!-- Chart.js CDN -->
+{{-- Chart.js --}}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <script>
-    // Initialize chart with current data
     const topProducts = @json($topProducts);
-    const chartLabels = topProducts.map(item => item.product?.pdt_name ?? 'Unknown');
-    const chartData = topProducts.map(item => item.total_sold);
+
+    const labels = topProducts.map(p => p.pdt_name);
+    const data = topProducts.map(p => p.total_sold);
 
     const ctx = document.getElementById('topProductsChart').getContext('2d');
-    const topProductsChart = new Chart(ctx, {
+    new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: chartLabels,
+            labels: labels,
             datasets: [{
                 label: 'Units Sold',
-                data: chartData,
-                backgroundColor: 'rgba(75, 192, 192, 0.7)',
-                borderColor: 'rgba(75, 192, 192, 1)',
+                data: data,
+                backgroundColor: 'rgba(255, 165, 0, 0.7)',
+                borderColor: 'rgba(255, 140, 0, 1)',
                 borderWidth: 1
             }]
         },
         options: {
             responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: { display: true, text: 'Quantity Sold' }
+                }
+            },
             plugins: {
                 legend: { display: false },
-                title: { display: true, text: 'Top 5 Products by Units Sold' }
-            },
-            scales: { y: { beginAtZero: true } }
+                title: { display: true, text: 'Top 5 Products by Quantity Sold' }
+            }
         }
     });
-
-    // Function to refresh report data
-    async function refreshReportData() {
-        try {
-            const res = await fetch("{{ route('sales.reports') }}");
-            const html = await res.text();
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(html, "text/html");
-
-            // Update table
-            const tableRows = doc.querySelectorAll('#salesTable tr');
-            document.getElementById('salesTable').innerHTML = Array.from(tableRows).map(tr => tr.outerHTML).join('');
-
-            // Update summary counts
-            document.getElementById('totalSales').innerText = doc.getElementById('totalSales').innerText;
-            document.getElementById('totalRevenue').innerText = doc.getElementById('totalRevenue').innerText;
-            document.getElementById('totalProducts').innerText = doc.getElementById('totalProducts').innerText;
-            document.getElementById('generatedAt').innerText = doc.getElementById('generatedAt').innerText;
-
-            // Update top products chart
-            const newTopProducts = @json($topProducts); // fallback
-            topProductsChart.data.labels = newTopProducts.map(item => item.product?.pdt_name ?? 'Unknown');
-            topProductsChart.data.datasets[0].data = newTopProducts.map(item => item.total_sold);
-            topProductsChart.update();
-
-        } catch (err) {
-            console.error('Failed to refresh report:', err);
-        }
-    }
-
-    // Listen to global "sale recorded" events from dashboard
-    document.addEventListener('saleRecorded', refreshReportData);
-
 </script>
 @endsection

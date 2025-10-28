@@ -126,4 +126,10 @@ Route::prefix('analyst')->group(function () {
 
     // Top Products
     Route::get('/top-products', [AdminController::class, 'topProducts'])->name('admin.topProducts');
+
+    Route::prefix('analyst')->group(function () {
+        Route::get('/sales', [SalesAnalystController::class, 'dashboard'])->name('analyst.sales.dashboard');
+        Route::post('/sales/store', [SalesAnalystController::class, 'store'])->name('analyst.sales.store');
+        Route::get('/sales/data', [SalesAnalystController::class, 'fetchSalesData'])->name('analyst.sales.data');
+    });
 });

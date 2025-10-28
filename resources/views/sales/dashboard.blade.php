@@ -52,7 +52,7 @@
             <table class="w-full border border-gray-200 rounded-lg overflow-hidden">
                 <thead class="bg-gray-100 text-gray-700">
                     <tr>
-                        <th class="border p-3 text-left">#</th>
+                        <th class="border p-3 text-center">#</th>
                         <th class="border p-3 text-left">Product</th>
                         <th class="border p-3 text-center">Quantity</th>
                         <th class="border p-3 text-center">Total (Ksh)</th>
@@ -62,7 +62,7 @@
                 <tbody id="salesTable">
                     <tr>
                         <td colspan="5" class="text-center p-4 text-gray-500">
-                            No sales recorded yet.
+                            Loading sales...
                         </td>
                     </tr>
                 </tbody>
@@ -81,26 +81,29 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
-    let topProductsChart = null;
-    const saveBtn = document.getElementById('saveBtn');
-    const originalBtnHTML = saveBtn.innerHTML;
+let topProductsChart = null;
+const saveBtn = document.getElementById('saveBtn');
+const originalBtnHTML = saveBtn.innerHTML;
 
-    document.getElementById('salesForm').addEventListener('submit', function(e) {
-        e.preventDefault();
+// ================= Record Sale =================
+document.getElementById('salesForm').addEventListener('submit', function(e) {
+    e.preventDefault();
 
-        saveBtn.disabled = true;
-        saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+    saveBtn.disabled = true;
+    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
 
-        const formData = {
-            _token: "{{ csrf_token() }}",
-            pdt_name: document.getElementById('pdt_name').value,
-            quantity: document.getElementById('quantity').value,
-            totalAmount: document.getElementById('totalAmount').value
-        };
+    const formData = {
+        _token: "{{ csrf_token() }}",
+        pdt_name: document.getElementById('pdt_name').value,
+        quantity: parseInt(document.getElementById('quantity').value),
+        totalAmount: parseFloat(document.getElementById('totalAmount').value)
+    };
 
-        fetch("{{ url('/analyst/sales/store') }}", {
+    fetch("{{ route('analyst.sales.store') }}", {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json'
+            },
             body: JSON.stringify(formData)
         })
         .then(res => res.json())
@@ -124,62 +127,89 @@
             console.error('Error:', err);
             alert('⚠️ Something went wrong. Check console for details.');
         });
-    });
+});
 
-    // 🧾 Update Recent Sales Table
-    function updateSalesTable(sales) {
-        const table = document.getElementById('salesTable');
-        table.innerHTML = '';
+// ================= Update Recent Sales Table =================
+function updateSalesTable(sales) {
+    const table = document.getElementById('salesTable');
+    table.innerHTML = '';
 
-        if (!sales || sales.length === 0) {
-            table.innerHTML = '<tr><td colspan="5" class="text-center p-4 text-gray-500">No sales recorded yet.</td></tr>';
-            return;
-        }
-
-        sales.forEach((sale, index) => {
-            const row = `
-                <tr class="border-t hover:bg-gray-50">
-                    <td class="border p-3 text-center">${index + 1}</td>
-                    <td class="border p-3">${sale.product?.pdt_name || sale.pdt_name || 'N/A'}</td>
-                    <td class="border p-3 text-center">${sale.quantity}</td>
-                    <td class="border p-3 text-center">${sale.totalAmount}</td>
-                    <td class="border p-3 text-center">${new Date(sale.date || sale.created_at).toLocaleString()}</td>
-                </tr>`;
-            table.innerHTML += row;
-        });
+    if (!sales || sales.length === 0) {
+        table.innerHTML = '<tr><td colspan="5" class="text-center p-4 text-gray-500">No sales recorded yet.</td></tr>';
+        return;
     }
 
-    // 📊 Update Top 5 Products Chart
-    function updateTopProductsChart(topProducts) {
-        if (!topProducts || topProducts.length === 0) return;
+    sales.forEach((sale, index) => {
+        const productName = sale.product?.pdt_name || sale.pdt_name || 'N/A';
+        const saleDate = new Date(sale.date || sale.created_at).toLocaleString();
+        const row = `
+        <tr class="border-t hover:bg-gray-50">
+            <td class="border p-3 text-center">${index + 1}</td>
+            <td class="border p-3">${productName}</td>
+            <td class="border p-3 text-center">${sale.quantity}</td>
+            <td class="border p-3 text-center">${sale.totalAmount}</td>
+            <td class="border p-3 text-center">${saleDate}</td>
+        </tr>
+        `;
+        table.innerHTML += row;
+    });
+}
 
-        const labels = topProducts.map(p => p.product?.pdt_name || p.pdt_name || 'Unknown');
-        const values = topProducts.map(p => p.total_sold);
+// ================= Update Top Products Chart =================
+function updateTopProductsChart(topProducts) {
+    if (!topProducts || topProducts.length === 0) return;
 
-        if (topProductsChart) topProductsChart.destroy();
+    const labels = topProducts.map(p => p.pdt_name || 'Unknown');
+    const values = topProducts.map(p => p.total_sold || 0);
 
-        const ctx = document.getElementById('topProductsChart').getContext('2d');
-        topProductsChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Units Sold',
-                    data: values,
-                    backgroundColor: 'rgba(255, 165, 0, 0.7)',
-                    borderColor: 'rgba(255, 140, 0, 1)',
-                    borderWidth: 1
-                }]
+    if (topProductsChart) topProductsChart.destroy();
+
+    const ctx = document.getElementById('topProductsChart').getContext('2d');
+    topProductsChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Units Sold',
+                data: values,
+                backgroundColor: 'rgba(255, 165, 0, 0.7)',
+                borderColor: 'rgba(255, 140, 0, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Quantity Sold'
+                    }
+                }
             },
-            options: {
-                responsive: true,
-                scales: { y: { beginAtZero: true } },
-                plugins: {
-                    legend: { display: false },
-                    title: { display: true, text: 'Top 5 Products by Quantity Sold' }
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Top 5 Products by Quantity Sold'
+                },
+                legend: {
+                    display: false
                 }
             }
-        });
-    }
+        }
+    });
+}
+
+// ================= Load initial sales & chart =================
+document.addEventListener('DOMContentLoaded', () => {
+    fetch("{{ route('analyst.sales.data') }}")
+        .then(res => res.json())
+        .then(data => {
+            updateSalesTable(data.sales);
+            updateTopProductsChart(data.topProducts);
+        })
+        .catch(err => console.error('Failed to load initial sales data:', err));
+});
 </script>
 @endsection

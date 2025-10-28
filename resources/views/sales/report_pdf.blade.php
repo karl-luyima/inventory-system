@@ -4,44 +4,39 @@
     <meta charset="UTF-8">
     <title>Sales Report</title>
     <style>
-        body { font-family: DejaVu Sans, sans-serif; font-size: 12px; }
-        h1, h2 { text-align: center; margin-bottom: 10px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        body { font-family: DejaVu Sans, sans-serif; font-size: 12px; color: #333; }
+        h1, h2, h3 { text-align: center; margin-bottom: 10px; }
+        h3 { text-align: left; margin-top: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th, td { border: 1px solid #ddd; padding: 6px; text-align: left; }
         th { background: #f2f2f2; }
         .summary { margin-top: 20px; }
         .summary div { margin-bottom: 5px; }
+        .card { display: inline-block; width: 30%; background: #f0f0f0; padding: 10px; margin-right: 1%; border-radius: 5px; text-align: center; }
+        .card:last-child { margin-right: 0; }
+        .card-title { font-weight: bold; color: #555; }
+        .card-value { font-size: 16px; font-weight: bold; margin-top: 5px; }
     </style>
 </head>
 <body>
+
     <h1>Sales Report</h1>
     <h2>Generated: {{ $generatedAt }}</h2>
 
     <div class="summary">
-        <div><strong>Total Sales:</strong> {{ $totalSales }}</div>
-        <div><strong>Total Revenue:</strong> Ksh {{ number_format($totalRevenue, 2) }}</div>
-        <div><strong>Products Sold:</strong> {{ $totalProducts }}</div>
+        <div class="card">
+            <div class="card-title">Total Sales</div>
+            <div class="card-value">{{ $totalSales }}</div>
+        </div>
+        <div class="card">
+            <div class="card-title">Total Revenue</div>
+            <div class="card-value">Ksh {{ number_format($totalRevenue, 2) }}</div>
+        </div>
+        <div class="card">
+            <div class="card-title">Products Sold</div>
+            <div class="card-value">{{ $totalProducts }}</div>
+        </div>
     </div>
-
-    <h3>Top Products</h3>
-    <table>
-        <thead>
-            <tr>
-                <th>Product</th>
-                <th>Units Sold</th>
-                <th>Total Amount</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach ($topProducts as $item)
-            <tr>
-                <td>{{ $item->product->pdt_name ?? 'Unknown' }}</td>
-                <td>{{ $item->total_sold }}</td>
-                <td>Ksh {{ number_format($item->total_amount, 2) }}</td>
-            </tr>
-            @endforeach
-        </tbody>
-    </table>
 
     <h3>Detailed Sales</h3>
     <table>
@@ -64,5 +59,6 @@
             @endforeach
         </tbody>
     </table>
+
 </body>
 </html>

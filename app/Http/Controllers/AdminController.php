@@ -16,19 +16,11 @@ class AdminController extends Controller
     // ================= Dashboard =================
     public function home()
     {
-        // Total users (clerks + analysts)
         $totalUsers = InventoryClerk::count() + SalesAnalyst::count();
-
-        // Active KPIs
         $activeKpis = Kpi::count();
 
-        // Only pass the variables needed for the dashboard
-        return view('admin.home', compact(
-            'totalUsers',
-            'activeKpis'
-        ));
+        return view('admin.home', compact('totalUsers', 'activeKpis'));
     }
-
 
     // ================= KPIs =================
     public function kpis()
@@ -46,16 +38,7 @@ class AdminController extends Controller
         ]);
 
         Kpi::create($request->only('title', 'value', 'color'));
-
         return redirect()->route('admin.kpis')->with('success', 'KPI added successfully!');
-    }
-
-    public function deleteKpi($id)
-    {
-        $kpi = Kpi::findOrFail($id);
-        $kpi->delete();
-
-        return redirect()->route('admin.kpis')->with('success', 'KPI removed successfully!');
     }
 
     public function editKpi($id)
@@ -78,6 +61,14 @@ class AdminController extends Controller
         return redirect()->route('admin.kpis')->with('success', 'KPI updated successfully!');
     }
 
+    public function deleteKpi($id)
+    {
+        $kpi = Kpi::findOrFail($id);
+        $kpi->delete();
+
+        return redirect()->route('admin.kpis')->with('success', 'KPI removed successfully!');
+    }
+
     // ================= Inventory =================
     public function inventory()
     {
@@ -98,51 +89,44 @@ class AdminController extends Controller
         ]);
     }
 
-    // ================= Sales =================
-    public function sales()
+    // ================= Top Products =================
+    public function topProducts()
     {
-        return view('admin.sales');
-    }
+        // Aligning with SalesAnalyst logic
+        $topProducts = Product::withSum('sales', 'quantity')
+            ->orderByDesc('sales_sum_quantity')
+            ->take(10)
+            ->get()
+            ->filter(fn($product) => $product->sales_sum_quantity > 0)
+            ->map(fn($product) => (object)[
+                'pdt_name' => $product->pdt_name,
+                'total_qty' => $product->sales_sum_quantity
+            ]);
 
-    public function salesData()
-    {
-        $topProducts = Sale::join('products', 'sales.pdt_id', '=', 'products.pdt_id')
-            ->selectRaw('products.pdt_name, SUM(sales.totalAmount) as total_sales')
-            ->groupBy('products.pdt_name')
-            ->orderByDesc('total_sales')
-            ->take(5)
-            ->get();
-
-        return response()->json([
-            'labels' => $topProducts->pluck('pdt_name'),
-            'values' => $topProducts->pluck('total_sales'),
-        ]);
+        return view('admin.top-products', compact('topProducts'));
     }
 
     // ================= Users =================
     public function users()
     {
-        $clerks = InventoryClerk::all()->map(function ($u) {
-            $u->role = 'Inventory Clerk';
-            $u->id = $u->clerk_id;
-            $u->name = $u->clerk_name;
-            $u->email = $u->clerk_email;
-            $u->type = 'clerk';
-            return $u;
-        });
+        $clerks = InventoryClerk::all()->map(fn($u) => (object)[
+            'role' => 'Inventory Clerk',
+            'id' => $u->clerk_id,
+            'name' => $u->clerk_name,
+            'email' => $u->clerk_email,
+            'type' => 'clerk'
+        ]);
 
-        $analysts = SalesAnalyst::all()->map(function ($u) {
-            $u->role = 'Sales Analyst';
-            $u->id = $u->analyst_id;
-            $u->name = $u->analyst_name;
-            $u->email = $u->analyst_email;
-            $u->type = 'analyst';
-            return $u;
-        });
+        $analysts = SalesAnalyst::all()->map(fn($u) => (object)[
+            'role' => 'Sales Analyst',
+            'id' => $u->analyst_id,
+            'name' => $u->analyst_name,
+            'email' => $u->analyst_email,
+            'type' => 'analyst'
+        ]);
 
         $allUsers = $clerks->merge($analysts)->values();
 
-        // Pagination
         $page = request()->get('page', 1);
         $perPage = 10;
         $paginated = new LengthAwarePaginator(
@@ -175,7 +159,6 @@ class AdminController extends Controller
     // ================= Reports =================
     public function reports()
     {
-        // Only sales analyst generated reports
         $reports = Report::where('creator_type', 'analyst')
             ->orderByDesc('created_at')
             ->paginate(10);
@@ -198,20 +181,6 @@ class AdminController extends Controller
 
         return redirect()->route('admin.reports')->with('success', 'Report deleted successfully!');
     }
-
-    public function topProducts()
-    {
-        // Get top 10 products by total quantity sold
-        $topProducts = Sale::join('products', 'sales.pdt_id', '=', 'products.pdt_id')
-            ->selectRaw('products.pdt_name, SUM(sales.quantity) as total_qty')
-            ->groupBy('products.pdt_name')
-            ->orderByDesc('total_qty')
-            ->take(10)
-            ->get();
-
-        return view('admin.top-products', compact('topProducts'));
-    }
-
 
     // ================= Settings =================
     public function settings()
