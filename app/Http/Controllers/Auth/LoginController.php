@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
@@ -71,8 +72,13 @@ class LoginController extends Controller
     // Logout
     public function logout(Request $request)
     {
-        $request->session()->flush();
+        // Remove all session data
+        $request->session()->invalidate();
+
+        // Regenerate the CSRF token to prevent fixation attacks
         $request->session()->regenerateToken();
-        return redirect()->route('login');
+
+        // Redirect to login page
+        return redirect()->route('login')->with('success', 'You have been logged out successfully.');
     }
 }
