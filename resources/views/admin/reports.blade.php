@@ -3,15 +3,14 @@
 @section('content')
 <div class="p-8 bg-gray-50 min-h-screen">
     <div class="flex justify-between items-center mb-8">
-        <h1 class="text-3xl font-bold text-gray-800">Reports Dashboard</h1>
+        <h1 class="text-3xl font-bold text-gray-800">Reports Management</h1>
 
-        {{-- ✅ Fixed styled button --}}
         <a href="{{ route('admin.reports.generate') }}" 
            class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-white font-medium
                   bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700
                   shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition duration-200">
-            <i class="fas fa-plus-circle"></i>
-            Generate Summary Report
+            <i data-lucide="plus-circle" class="w-5 h-5"></i>
+            Generate Admin Summary Report
         </a>
     </div>
 
@@ -37,7 +36,10 @@
                             <tr class="border-t hover:bg-gray-50">
                                 <td class="py-3 px-4">{{ $loop->iteration }}</td>
                                 <td class="py-3 px-4 font-medium">{{ $report->name }}</td>
-                                <td class="py-3 px-4 capitalize">{{ $report->creator_type }}</td>
+                                <td class="py-3 px-4">
+                                    {{ ucfirst($report->creator_type) }} 
+                                    — <span class="text-gray-600">{{ $report->creator_name ?? 'Unknown' }}</span>
+                                </td>
                                 <td class="py-3 px-4">{{ $report->created_at->format('d M Y, H:i') }}</td>
                                 <td class="py-3 px-4 flex justify-center gap-3">
                                     <a href="{{ route('admin.reports.view', $report->id) }}" 
@@ -55,14 +57,13 @@
                     </tbody>
                 </table>
 
-                {{-- Pagination --}}
                 <div class="mt-6">
                     {{ $reports->links() }}
                 </div>
             @else
                 <div class="text-center text-gray-500 py-12">
                     <p class="text-xl font-semibold mb-2">No reports available yet.</p>
-                    <p>Click <strong>“Generate Summary Report”</strong> to create your first report.</p>
+                    <p>Click <strong>“Generate Admin Summary Report”</strong> to create one.</p>
                 </div>
             @endif
         </div>

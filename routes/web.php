@@ -33,13 +33,11 @@ Route::prefix('admin')->group(function () {
     Route::delete('/kpis/{id}', [AdminController::class, 'deleteKpi'])->name('admin.kpis.delete');
 
     // ================= Reports =================
-    // ✅ Place these BEFORE /reports/{id} to avoid 404 conflicts
     Route::get('/reports/generate', [AdminController::class, 'generateSummaryReport'])
         ->name('admin.reports.generate');
     Route::get('/reports/download/{id}', [AdminController::class, 'downloadSummaryReport'])
         ->name('admin.reports.download');
 
-    // Reports list and view
     Route::get('/reports', [AdminController::class, 'reports'])->name('admin.reports');
     Route::get('/reports/{id}', [AdminController::class, 'viewReport'])->name('admin.reports.view');
     Route::delete('/reports/{id}', [AdminController::class, 'deleteReport'])->name('admin.reports.delete');
@@ -54,6 +52,5 @@ Route::prefix('admin')->group(function () {
     Route::get('/login', [LoginController::class, 'showLogin'])->name('login');
     Route::post('/login', [LoginController::class, 'login'])->name('login.submit');
 
-    // ✅ Logout route
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 });

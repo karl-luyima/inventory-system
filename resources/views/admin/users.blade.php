@@ -27,11 +27,11 @@
             @forelse($users as $index => $user)
                 <tr class="hover:bg-gray-50">
                     <td class="px-4 py-2 border-b">{{ $index + $users->firstItem() }}</td>
-                    <td class="px-4 py-2 border-b">{{ $user->name }}</td>
-                    <td class="px-4 py-2 border-b">{{ $user->email ?? 'N/A' }}</td>
-                    <td class="px-4 py-2 border-b">{{ $user->role }}</td>
+                    <td class="px-4 py-2 border-b">{{ $user['name'] }}</td>
+                    <td class="px-4 py-2 border-b">{{ $user['email'] ?? 'N/A' }}</td>
+                    <td class="px-4 py-2 border-b">{{ $user['role'] }}</td>
                     <td class="px-4 py-2 border-b text-center">
-                        <form action="{{ route('admin.deleteUser', $user->id) }}?type={{ $user->type }}" method="POST"
+                        <form action="{{ route('admin.deleteUser', $user['id']) }}?type={{ $user['type'] }}" method="POST"
                               onsubmit="return confirm('Are you sure you want to delete this user?');">
                             @csrf
                             @method('DELETE')
