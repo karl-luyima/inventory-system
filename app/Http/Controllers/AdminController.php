@@ -33,28 +33,30 @@ class AdminController extends Controller
     // ================= Users =================
     public function users()
     {
-        // Merge users as arrays
-        $inventoryClerks = InventoryClerk::all()->map(function ($user) {
-            return [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
+        // Map Inventory Clerks
+        $inventoryClerks = InventoryClerk::all()->map(function($user) {
+            return (object) [
+                'id' => $user->clerk_id,
+                'name' => $user->clerk_name,
+                'email' => $user->clerk_email,
                 'role' => 'Inventory Clerk',
-                'type' => 'inventory',
+                'type' => 'inventory'
             ];
         });
 
-        $salesAnalysts = SalesAnalyst::all()->map(function ($user) {
-            return [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
+        // Map Sales Analysts
+        $salesAnalysts = SalesAnalyst::all()->map(function($user) {
+            return (object) [
+                'id' => $user->analyst_id,
+                'name' => $user->analyst_name,
+                'email' => $user->analyst_email,
                 'role' => 'Sales Analyst',
-                'type' => 'sales',
+                'type' => 'sales'
             ];
         });
 
-        $users = collect($inventoryClerks)->concat($salesAnalysts);
+        // Merge users
+        $users = $inventoryClerks->concat($salesAnalysts);
 
         // Paginate manually
         $page = request()->get('page', 1);
@@ -65,12 +67,13 @@ class AdminController extends Controller
             $users->count(),
             $perPage,
             $page,
-            ['path' => request()->url()]
+            ['path' => request()->url(), 'query' => request()->query()]
         );
 
         return view('admin.users', ['users' => $paginatedUsers]);
     }
 
+    // ================= Delete User =================
     public function deleteUser(Request $request, $id)
     {
         $type = $request->query('type');
@@ -117,7 +120,7 @@ class AdminController extends Controller
                 ->toArray()
         ];
 
-        Report::create([
+        $report = Report::create([
             'name' => 'Admin Dashboard Summary',
             'creator_type' => 'admin',
             'creator_id' => $admin ? $admin->id : 1,
