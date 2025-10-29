@@ -26,7 +26,6 @@
                         <tr class="bg-gray-100 text-gray-700 text-left text-sm uppercase">
                             <th class="py-3 px-4">#</th>
                             <th class="py-3 px-4">Report Name</th>
-                            <th class="py-3 px-4">Created By</th>
                             <th class="py-3 px-4">Date</th>
                             <th class="py-3 px-4 text-center">Actions</th>
                         </tr>
@@ -36,10 +35,6 @@
                             <tr class="border-t hover:bg-gray-50">
                                 <td class="py-3 px-4">{{ $loop->iteration }}</td>
                                 <td class="py-3 px-4 font-medium">{{ $report->name }}</td>
-                                <td class="py-3 px-4">
-                                    {{ ucfirst($report->creator_type) }} 
-                                    — <span class="text-gray-600">{{ $report->creator_name ?? 'Unknown' }}</span>
-                                </td>
                                 <td class="py-3 px-4">{{ $report->created_at->format('d M Y, H:i') }}</td>
                                 <td class="py-3 px-4 flex justify-center gap-3">
                                     <a href="{{ route('admin.reports.view', $report->id) }}" 

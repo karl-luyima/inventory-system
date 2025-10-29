@@ -10,8 +10,9 @@ return new class extends Migration {
         Schema::create('reports', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('creator_type');
-            $table->unsignedBigInteger('creator_id');
+            $table->string('creator_type')->nullable(); // allow null
+            $table->unsignedBigInteger('creator_id')->nullable(); // allow null
+            $table->string('creator_name')->nullable(); // optional column for storing name
             $table->json('data');
             $table->timestamps();
         });

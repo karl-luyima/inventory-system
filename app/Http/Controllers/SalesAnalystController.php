@@ -65,22 +65,9 @@ class SalesAnalystController extends Controller
                 'date' => now(),
             ]);
 
-            $topProducts = Product::withSum('sales', 'quantity')
-                ->withSum('sales', 'totalAmount')
-                ->orderByDesc('sales_sum_quantity')
-                ->take(5)
-                ->get()
-                ->map(fn($p) => (object)[
-                    'pdt_name' => $p->pdt_name,
-                    'total_sold' => $p->sales_sum_quantity ?? 0,
-                    'total_amount' => $p->{"sales_sum_total_amount"} ?? 0
-                ]);
-
             return response()->json([
                 'success' => true,
                 'message' => 'Sale recorded successfully!',
-                'sales' => Sale::with('product')->orderBy('created_at', 'desc')->take(10)->get(),
-                'topProducts' => $topProducts
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -90,18 +77,15 @@ class SalesAnalystController extends Controller
         }
     }
 
-    // ================= Reports View =================
-    // ================= Reports View =================
+    // ================= Reports =================
     public function reports()
     {
         $sales = Sale::with('product')->latest()->get();
 
-        // Summary metrics
         $totalSales = $sales->count();
         $totalRevenue = $sales->sum('totalAmount');
         $totalProducts = $sales->sum('quantity');
 
-        // Top 5 Products for chart
         $topProducts = Product::withSum('sales', 'quantity')
             ->orderByDesc('sales_sum_quantity')
             ->take(5)
@@ -113,7 +97,6 @@ class SalesAnalystController extends Controller
 
         return view('sales.reports', compact('sales', 'totalSales', 'totalRevenue', 'totalProducts', 'topProducts'));
     }
-
 
     // ================= Download Report PDF =================
     public function downloadReport()

@@ -27,15 +27,33 @@ class RegisterController extends Controller
 
         $hashedPassword = Hash::make($request->password);
 
-        // Map roles to their models and name columns
+        // Map roles to their models and name/email columns
         $roles = [
-            'administrator' => ['model' => Administrator::class, 'name_column' => 'admin_name', 'email_column' => 'admin_email'],
-            'inventory_clerk' => ['model' => InventoryClerk::class, 'name_column' => 'clerk_name', 'email_column' => 'clerk_email'],
-            'sales_analyst' => ['model' => SalesAnalyst::class, 'name_column' => 'analyst_name', 'email_column' => 'analyst_email'],
+            'administrator' => [
+                'model' => Administrator::class, 
+                'name_column' => 'admin_name', 
+                'email_column' => 'admin_email'
+            ],
+            'inventory_clerk' => [
+                'model' => InventoryClerk::class, 
+                'name_column' => 'clerk_name', 
+                'email_column' => 'clerk_email'
+            ],
+            'sales_analyst' => [
+                'model' => SalesAnalyst::class, 
+                'name_column' => 'analyst_name', 
+                'email_column' => 'analyst_email'
+            ],
         ];
 
         $roleData = $roles[$request->role];
         $model = $roleData['model'];
+
+        // Check for existing email
+        $existing = $model::where($roleData['email_column'], $request->email)->first();
+        if ($existing) {
+            return back()->withErrors(['email' => 'This email is already registered.'])->withInput();
+        }
 
         $model::create([
             $roleData['name_column'] => $request->name,

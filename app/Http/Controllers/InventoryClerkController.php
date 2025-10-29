@@ -14,6 +14,9 @@ use Illuminate\Support\Facades\DB;
 class InventoryClerkController extends Controller
 {
     // ================= Dashboard =================
+
+
+    
     public function dashboard()
     {
         $products = Product::all();

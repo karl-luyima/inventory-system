@@ -29,40 +29,40 @@ class LoginController extends Controller
         $email = $request->email;
         $password = $request->password;
 
+        // Updated to match registration roles
         $roles = [
-            'admin' => Administrator::class,
-            'clerk' => InventoryClerk::class,
-            'analyst' => SalesAnalyst::class,
+            'administrator' => Administrator::class,
+            'inventory_clerk' => InventoryClerk::class,
+            'sales_analyst' => SalesAnalyst::class,
         ];
 
         foreach ($roles as $role => $model) {
-            $user = $model::where(function ($query) use ($role, $email) {
-                $emailField = match ($role) {
-                    'admin' => 'admin_email',
-                    'clerk' => 'clerk_email',
-                    'analyst' => 'analyst_email',
-                };
-                $query->where($emailField, $email);
-            })->first();
+            $emailField = match ($role) {
+                'administrator' => 'admin_email',
+                'inventory_clerk' => 'clerk_email',
+                'sales_analyst' => 'analyst_email',
+            };
+
+            $nameField = match ($role) {
+                'administrator' => 'admin_name',
+                'inventory_clerk' => 'clerk_name',
+                'sales_analyst' => 'analyst_name',
+            };
+
+            $dashboardRoute = match ($role) {
+                'administrator' => 'admin.dashboard',
+                'inventory_clerk' => 'clerk.dashboard',
+                'sales_analyst' => 'sales.dashboard',
+            };
+
+            $user = $model::where($emailField, $email)->first();
 
             if ($user && Hash::check($password, $user->password)) {
                 // Set session
                 Session::put('role', $role);
-                $nameField = match ($role) {
-                    'admin' => 'admin_name',
-                    'clerk' => 'clerk_name',
-                    'analyst' => 'analyst_name',
-                };
                 Session::put('name', $user->{$nameField});
 
-                // Redirect based on role
-                $route = match ($role) {
-                    'admin' => 'admin.dashboard',
-                    'clerk' => 'clerk.dashboard',
-                    'analyst' => 'sales.dashboard',
-                };
-
-                return redirect()->route($route);
+                return redirect()->route($dashboardRoute);
             }
         }
 
@@ -72,13 +72,9 @@ class LoginController extends Controller
     // Logout
     public function logout(Request $request)
     {
-        // Remove all session data
         $request->session()->invalidate();
-
-        // Regenerate the CSRF token to prevent fixation attacks
         $request->session()->regenerateToken();
 
-        // Redirect to login page
         return redirect()->route('login')->with('success', 'You have been logged out successfully.');
     }
 }
