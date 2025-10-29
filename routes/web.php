@@ -128,9 +128,7 @@ Route::get('/clerk/dashboard', [InventoryClerkController::class, 'dashboard'])->
 
 
 
-// ------------------------
-// Sales Analyst Routes
-// ------------------------
+
 // Sales Analyst Routes
 // ------------------------
 
