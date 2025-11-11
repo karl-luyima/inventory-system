@@ -13,6 +13,23 @@
         </div>
     @endif
 
+    @if(session('error'))
+        <div class="bg-red-100 text-red-700 p-3 rounded-lg shadow-sm">
+            ❌ {{ session('error') }}
+        </div>
+    @endif
+
+    {{-- Validation Errors --}}
+    @if ($errors->any())
+        <div class="bg-red-100 text-red-700 p-3 rounded-lg shadow-sm">
+            <ul class="list-disc pl-5">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
     {{-- KPI Cards --}}
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         @forelse($kpis as $kpi)
@@ -39,26 +56,28 @@
     </div>
 
     {{-- Add KPI Form --}}
-    <div class="bg-white p-6 rounded-xl shadow-md mt-10">
+    <div class="bg-white p-6 rounded-xl shadow-md mt-10 max-w-4xl mx-auto">
         <h2 class="text-xl font-semibold mb-4 text-gray-800">➕ Add New KPI</h2>
         <form action="{{ route('admin.kpis.add') }}" method="POST" class="grid grid-cols-1 md:grid-cols-3 gap-6">
             @csrf
             <div>
                 <label class="block text-gray-700 font-medium mb-1">Title</label>
-                <input type="text" name="title" class="w-full px-3 py-2 border rounded-lg focus:ring focus:ring-blue-200" required>
+                <input type="text" name="title" value="{{ old('title') }}"
+                       class="w-full px-3 py-2 border rounded-lg focus:ring focus:ring-blue-200" required>
             </div>
             <div>
                 <label class="block text-gray-700 font-medium mb-1">Value</label>
-                <input type="text" name="value" class="w-full px-3 py-2 border rounded-lg focus:ring focus:ring-blue-200" required>
+                <input type="text" name="value" value="{{ old('value') }}"
+                       class="w-full px-3 py-2 border rounded-lg focus:ring focus:ring-blue-200" required>
             </div>
             <div>
                 <label class="block text-gray-700 font-medium mb-1">Theme Color</label>
                 <select name="color" class="w-full px-3 py-2 border rounded-lg focus:ring focus:ring-blue-200">
-                    <option value="blue">Blue</option>
-                    <option value="green">Green</option>
-                    <option value="yellow">Yellow</option>
-                    <option value="red">Red</option>
-                    <option value="purple">Purple</option>
+                    @foreach(['blue','green','yellow','red','purple'] as $color)
+                        <option value="{{ $color }}" {{ old('color') == $color ? 'selected' : '' }}>
+                            {{ ucfirst($color) }}
+                        </option>
+                    @endforeach
                 </select>
             </div>
             <div class="md:col-span-3 flex justify-end">

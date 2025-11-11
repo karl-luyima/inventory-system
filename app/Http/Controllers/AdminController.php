@@ -18,7 +18,6 @@ class AdminController extends Controller
     // ================= Dashboard =================
     public function dashboard()
     {
-        // Reuse home() to pass necessary variables
         return $this->home();
     }
 
@@ -158,6 +157,56 @@ class AdminController extends Controller
         return view('admin.kpis', compact('kpis'));
     }
 
+    public function addKpi(Request $request)
+    {
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'value' => 'required|string|max:255',
+            'color' => 'required|string|max:50',
+        ]);
+
+        Kpi::create([
+            'title' => $request->title,
+            'value' => $request->value,
+            'color' => $request->color,
+        ]);
+
+        return redirect()->route('admin.kpis')->with('success', 'KPI added successfully!');
+    }
+
+    public function editKpi($id)
+    {
+        $kpi = Kpi::findOrFail($id);
+        return view('admin.edit-kpi', compact('kpi'));
+    }
+
+    public function updateKpi(Request $request, $id)
+    {
+        $kpi = Kpi::findOrFail($id);
+
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'value' => 'required|string|max:255',
+            'color' => 'required|string|max:50',
+        ]);
+
+        $kpi->update([
+            'title' => $request->title,
+            'value' => $request->value,
+            'color' => $request->color,
+        ]);
+
+        return redirect()->route('admin.kpis')->with('success', 'KPI updated successfully!');
+    }
+
+    public function deleteKpi($id)
+    {
+        $kpi = Kpi::findOrFail($id);
+        $kpi->delete();
+
+        return redirect()->route('admin.kpis')->with('success', 'KPI deleted successfully!');
+    }
+
     // ================= Top Products =================
     public function topProducts()
     {
@@ -187,5 +236,18 @@ class AdminController extends Controller
         $report = Report::findOrFail($id);
         $report->delete();
         return redirect()->route('admin.reports')->with('success', 'Report deleted successfully!');
+    }
+
+    // ================= Inventory Data =================
+    public function inventoryData()
+    {
+        $totalProducts = Product::count();
+        $lowStockItems = Product::where('stock_level', '<=', 5)
+            ->get(['pdt_name as name', 'stock_level as stock']);
+
+        return response()->json([
+            'totalProducts' => $totalProducts,
+            'lowStockItems' => $lowStockItems,
+        ]);
     }
 }

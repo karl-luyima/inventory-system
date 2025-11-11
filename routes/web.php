@@ -27,6 +27,7 @@ Route::post('/register', [RegisterController::class, 'registerSubmit'])->name('r
 // Admin Routes
 // ------------------------
 Route::prefix('admin')->name('admin.')->group(function () {
+    // Dashboard
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
     Route::get('/home', [AdminController::class, 'home'])->name('home');
 
@@ -36,9 +37,14 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
     // Inventory
     Route::get('/inventory', [AdminController::class, 'inventory'])->name('inventory');
+    Route::get('/inventory/data', [AdminController::class, 'inventoryData'])->name('inventory.data');
 
     // KPIs
     Route::get('/kpis', [AdminController::class, 'kpis'])->name('kpis');
+    Route::post('/kpis/add', [AdminController::class, 'addKpi'])->name('kpis.add');
+    Route::get('/kpis/edit/{id}', [AdminController::class, 'editKpi'])->name('kpis.edit');
+    Route::put('/kpis/update/{id}', [AdminController::class, 'updateKpi'])->name('kpis.update');
+    Route::delete('/kpis/delete/{id}', [AdminController::class, 'deleteKpi'])->name('kpis.delete');
 
     // Reports
     Route::get('/reports', [AdminController::class, 'reports'])->name('reports');
@@ -55,94 +61,32 @@ Route::prefix('admin')->name('admin.')->group(function () {
 });
 
 // ------------------------
-// ------------------------
 // Inventory Clerk Routes
 // ------------------------
-// ==================== INVENTORY CLERK ROUTES ====================
+Route::prefix('clerk')->name('clerk.')->group(function () {
+    Route::get('/dashboard', [InventoryClerkController::class, 'dashboard'])->name('dashboard');
+    Route::get('/search', [InventoryClerkController::class, 'search'])->name('search');
+    Route::put('/update-stock/{id}', [InventoryClerkController::class, 'updateStock'])->name('updateStock');
+    Route::post('/save-sale', [InventoryClerkController::class, 'saveSale'])->name('saveSale');
+    Route::post('/create', [InventoryClerkController::class, 'createClerk'])->name('create');
+    Route::get('/metrics', [InventoryClerkController::class, 'metrics'])->name('metrics');
 
-// Dashboard
-Route::get('/clerk/dashboard', [InventoryClerkController::class, 'dashboard'])
-    ->name('clerk.dashboard');
+    // Products
+    Route::get('/products/create', [InventoryClerkController::class, 'createProduct'])->name('products.create');
+    Route::post('/products/store', [InventoryClerkController::class, 'storeProduct'])->name('products.store');
 
-// Search products
-Route::get('/clerk/search', [InventoryClerkController::class, 'search'])
-    ->name('clerk.search');
+    // Inventory
+    Route::get('/inventory/create', [InventoryClerkController::class, 'createInventory'])->name('inventory.create');
+    Route::post('/inventory/store', [InventoryClerkController::class, 'storeInventory'])->name('inventory.store');
+});
 
-// Update stock
-Route::put('/clerk/update-stock/{id}', [InventoryClerkController::class, 'updateStock'])
-    ->name('clerk.updateStock');
-
-// Save sale
-Route::post('/clerk/save-sale', [InventoryClerkController::class, 'saveSale'])
-    ->name('clerk.saveSale');
-
-// Create clerk
-Route::post('/clerk/create', [InventoryClerkController::class, 'createClerk'])
-    ->name('clerk.create');
-
-// Metrics
-Route::get('/clerk/metrics', [InventoryClerkController::class, 'metrics'])
-    ->name('clerk.metrics');
-
-// Create product form
-Route::get('/clerk/products/create', [InventoryClerkController::class, 'createProduct'])
-    ->name('clerk.products.create');
-
-// Store product
-Route::post('/clerk/products/store', [InventoryClerkController::class, 'storeProduct'])
-    ->name('clerk.products.store');
-
-// Create inventory form
-Route::get('/clerk/inventory/create', [InventoryClerkController::class, 'createInventory'])
-    ->name('clerk.inventory.create');
-
-// Store inventory
-Route::post('/clerk/inventory/store', [InventoryClerkController::class, 'storeInventory'])
-    ->name('clerk.inventory.store');
-
-
-// Show the Add Product form
-Route::get('/products/create', [InventoryClerkController::class, 'create'])->name('products.create');
-
-// Handle the form submission
-Route::post('/products', [InventoryClerkController::class, 'store'])->name('products.store');
-
-
-// Show the "Add Inventory" form
-Route::get('/inventories/create', [InventoryClerkController::class, 'createInventory'])->name('inventories.create');
-
-// Handle form submission
-Route::post('/inventories', [InventoryClerkController::class, 'storeInventory'])->name('inventories.store');
-
-// Inventory
-Route::get('/inventories/create', [InventoryClerkController::class, 'createInventory'])->name('inventories.create');
-Route::post('/inventories', [InventoryClerkController::class, 'storeInventory'])->name('inventories.store');
-
-// Products
-Route::get('/products/create', [InventoryClerkController::class, 'createProduct'])->name('products.create');
-Route::post('/products', [InventoryClerkController::class, 'storeProduct'])->name('products.store');
-
-// Dashboard
-Route::get('/clerk/dashboard', [InventoryClerkController::class, 'dashboard'])->name('clerk.dashboard');
-
-
-
-
-
+// ------------------------
 // Sales Analyst Routes
 // ------------------------
-
-// Dashboard
-Route::get('/sales/dashboard', [SalesAnalystController::class, 'dashboard'])->name('sales.dashboard');
-
-// Record a Sale
-Route::post('/sales/store', [SalesAnalystController::class, 'store'])->name('analyst.sales.store');
-
-// View Reports
-Route::get('/sales/reports', [SalesAnalystController::class, 'reports'])->name('sales.reports');
-
-// Download Report as PDF
-Route::get('/sales/download', [SalesAnalystController::class, 'downloadReport'])->name('sales.downloadReport');
-
-// Fetch Sales Data (for JS/AJAX)
-Route::get('/sales/fetch-sales-data', [SalesAnalystController::class, 'fetchSalesData'])->name('analyst.sales.data');
+Route::prefix('sales')->name('sales.')->group(function () {
+    Route::get('/dashboard', [SalesAnalystController::class, 'dashboard'])->name('dashboard');
+    Route::post('/store', [SalesAnalystController::class, 'store'])->name('store');
+    Route::get('/reports', [SalesAnalystController::class, 'reports'])->name('reports');
+    Route::get('/download', [SalesAnalystController::class, 'downloadReport'])->name('downloadReport');
+    Route::get('/fetch-sales-data', [SalesAnalystController::class, 'fetchSalesData'])->name('data');
+});
