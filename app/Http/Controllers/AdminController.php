@@ -18,6 +18,7 @@ class AdminController extends Controller
     // ================= Dashboard =================
     public function dashboard()
     {
+        // Reuse home() to pass necessary variables
         return $this->home();
     }
 
@@ -157,12 +158,13 @@ class AdminController extends Controller
         return view('admin.kpis', compact('kpis'));
     }
 
+    // Add a new KPI
     public function addKpi(Request $request)
     {
         $request->validate([
             'title' => 'required|string|max:255',
             'value' => 'required|string|max:255',
-            'color' => 'required|string|max:50',
+            'color' => 'required|string|in:blue,green,yellow,red,purple',
         ]);
 
         Kpi::create([
@@ -174,22 +176,23 @@ class AdminController extends Controller
         return redirect()->route('admin.kpis')->with('success', 'KPI added successfully!');
     }
 
+    // Edit KPI form
     public function editKpi($id)
     {
         $kpi = Kpi::findOrFail($id);
         return view('admin.edit-kpi', compact('kpi'));
     }
 
+    // Update KPI
     public function updateKpi(Request $request, $id)
     {
-        $kpi = Kpi::findOrFail($id);
-
         $request->validate([
             'title' => 'required|string|max:255',
             'value' => 'required|string|max:255',
-            'color' => 'required|string|max:50',
+            'color' => 'required|string|in:blue,green,yellow,red,purple',
         ]);
 
+        $kpi = Kpi::findOrFail($id);
         $kpi->update([
             'title' => $request->title,
             'value' => $request->value,
@@ -199,6 +202,7 @@ class AdminController extends Controller
         return redirect()->route('admin.kpis')->with('success', 'KPI updated successfully!');
     }
 
+    // Delete KPI
     public function deleteKpi($id)
     {
         $kpi = Kpi::findOrFail($id);
