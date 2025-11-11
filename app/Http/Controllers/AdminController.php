@@ -18,7 +18,6 @@ class AdminController extends Controller
     // ================= Dashboard =================
     public function dashboard()
     {
-        // Reuse home() to pass necessary variables
         return $this->home();
     }
 
@@ -98,32 +97,42 @@ class AdminController extends Controller
 
     public function generateSummaryReport()
     {
-        $data = [
-            'total_users' => InventoryClerk::count() + SalesAnalyst::count(),
-            'active_kpis' => Kpi::count(),
-            'total_products' => Product::count(),
-            'low_stock_items' => Product::where('stock_level', '<=', 5)
-                ->get(['pdt_name as name', 'stock_level'])
-                ->toArray(),
-            'top_products' => DB::table('products')
-                ->select(
-                    'pdt_name as name',
-                    'price as unit_price',
-                    DB::raw('(SELECT SUM(quantity) FROM sales WHERE sales.pdt_id = products.pdt_id) as quantity_sold'),
-                    DB::raw('(price * (SELECT SUM(quantity) FROM sales WHERE sales.pdt_id = products.pdt_id)) as total_ksh')
-                )
-                ->orderByDesc('quantity_sold')
-                ->limit(5)
-                ->get()
-                ->toArray()
-        ];
+        // Total metrics
+        $totalUsers = InventoryClerk::count() + SalesAnalyst::count();
+        $activeKpis = Kpi::count();
+        $totalProducts = Product::count();
 
+        // Low stock items
+        $lowStockItems = Product::where('stock_level', '<=', 5)
+            ->get(['pdt_name as name', 'stock_level']);
+
+        // Top products (sum sales quantity)
+        $topProducts = DB::table('products')
+            ->leftJoin('sales', 'products.pdt_id', '=', 'sales.pdt_id')
+            ->select(
+                'products.pdt_name as name',
+                'products.price as unit_price',
+                DB::raw('COALESCE(SUM(sales.quantity), 0) as quantity_sold'),
+                DB::raw('COALESCE(products.price * SUM(sales.quantity), 0) as total_ksh')
+            )
+            ->groupBy('products.pdt_id', 'products.pdt_name', 'products.price')
+            ->orderByDesc('quantity_sold')
+            ->limit(5)
+            ->get();
+
+        // Save report
         Report::create([
             'name' => 'Admin Dashboard Summary',
             'creator_type' => null,
             'creator_id' => null,
             'creator_name' => null,
-            'data' => json_encode($data),
+            'data' => json_encode([
+                'total_users' => $totalUsers,
+                'active_kpis' => $activeKpis,
+                'total_products' => $totalProducts,
+                'low_stock_items' => $lowStockItems,
+                'top_products' => $topProducts,
+            ]),
         ]);
 
         return redirect()->route('admin.reports')
@@ -158,7 +167,6 @@ class AdminController extends Controller
         return view('admin.kpis', compact('kpis'));
     }
 
-    // Add a new KPI
     public function addKpi(Request $request)
     {
         $request->validate([
@@ -176,14 +184,12 @@ class AdminController extends Controller
         return redirect()->route('admin.kpis')->with('success', 'KPI added successfully!');
     }
 
-    // Edit KPI form
     public function editKpi($id)
     {
         $kpi = Kpi::findOrFail($id);
         return view('admin.edit-kpi', compact('kpi'));
     }
 
-    // Update KPI
     public function updateKpi(Request $request, $id)
     {
         $request->validate([
@@ -202,7 +208,6 @@ class AdminController extends Controller
         return redirect()->route('admin.kpis')->with('success', 'KPI updated successfully!');
     }
 
-    // Delete KPI
     public function deleteKpi($id)
     {
         $kpi = Kpi::findOrFail($id);
@@ -215,12 +220,14 @@ class AdminController extends Controller
     public function topProducts()
     {
         $topProducts = DB::table('products')
+            ->leftJoin('sales', 'products.pdt_id', '=', 'sales.pdt_id')
             ->select(
-                'pdt_name as name',
-                'price as unit_price',
-                DB::raw('(SELECT SUM(quantity) FROM sales WHERE sales.pdt_id = products.pdt_id) as quantity_sold'),
-                DB::raw('(price * (SELECT SUM(quantity) FROM sales WHERE sales.pdt_id = products.pdt_id)) as total_ksh')
+                'products.pdt_name as name',
+                'products.price as unit_price',
+                DB::raw('COALESCE(SUM(sales.quantity), 0) as quantity_sold'),
+                DB::raw('COALESCE(products.price * SUM(sales.quantity), 0) as total_ksh')
             )
+            ->groupBy('products.pdt_id', 'products.pdt_name', 'products.price')
             ->orderByDesc('quantity_sold')
             ->limit(5)
             ->get();

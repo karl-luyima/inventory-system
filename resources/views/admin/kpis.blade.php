@@ -4,7 +4,7 @@
 @section('page-title', '📑 Manage KPIs')
 
 @section('content')
-<div class="p-8 space-y-6">
+<div class="p-8 space-y-8">
 
     {{-- Flash Messages --}}
     @if(session('success'))
@@ -31,9 +31,19 @@
     @endif
 
     {{-- KPI Cards --}}
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    @php
+        $colorMap = [
+            'blue' => 'bg-gradient-to-r from-blue-500 to-blue-600',
+            'green' => 'bg-gradient-to-r from-green-500 to-green-600',
+            'yellow' => 'bg-gradient-to-r from-yellow-400 to-yellow-500',
+            'red' => 'bg-gradient-to-r from-red-500 to-red-600',
+            'purple' => 'bg-gradient-to-r from-purple-500 to-purple-600',
+        ];
+    @endphp
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         @forelse($kpis as $kpi)
-            <div class="relative bg-gradient-to-r from-{{ $kpi->color }}-500 to-{{ $kpi->color }}-600 text-white p-6 rounded-2xl shadow-lg transition transform hover:scale-105 hover:shadow-xl">
+            <div class="relative p-6 rounded-2xl shadow-lg transition transform hover:scale-105 hover:shadow-xl text-white {{ $colorMap[$kpi->color] ?? 'bg-gray-500' }}">
                 <h2 class="text-lg font-semibold">{{ $kpi->title }}</h2>
                 <p class="text-4xl font-bold mt-2">{{ $kpi->value }}</p>
 
@@ -87,5 +97,6 @@
             </div>
         </form>
     </div>
+
 </div>
 @endsection

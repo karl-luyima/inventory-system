@@ -1,124 +1,78 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <title>{{ $report->name }}</title>
-    <style>
-        body {
-            font-family: 'DejaVu Sans', sans-serif;
-            color: #333;
-            margin: 0;
-            padding: 0;
-            background: #f8f9fa;
-        }
-        h1, h2 {
-            text-align: center;
-            color: #2c3e50;
-            margin-bottom: 10px;
-        }
-        .header, .summary, .section {
-            width: 90%;
-            margin: 0 auto 20px auto;
-            padding: 15px;
-            background: #fff;
-            border-radius: 10px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        .summary {
-            display: flex;
-            justify-content: space-around;
-            text-align: center;
-        }
-        .summary .box {
-            padding: 15px;
-            background: #f1f5f9;
-            border-radius: 8px;
-            width: 30%;
-            font-size: 14px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
-        }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 10px 8px;
-            text-align: center;
-        }
-        th {
-            background-color: #f3f4f6;
-            font-weight: bold;
-        }
-        tbody tr:nth-child(even) {
-            background-color: #f9fafb;
-        }
-        .section h2 {
-            margin-bottom: 10px;
-            color: #1f2937;
-        }
-    </style>
-</head>
-<body>
+@extends('layouts.pdf')
 
-    <div class="header">
-        <h1>{{ $report->name }}</h1>
-        <p style="text-align:center;"><strong>Date:</strong> {{ $report->created_at->format('d M Y, H:i') }}</p>
-    </div>
+@section('content')
+<div style="font-family: sans-serif; padding: 20px;">
 
-    <div class="summary">
-        <div class="box"><strong>Total Users:</strong><br>{{ $data['total_users'] ?? 0 }}</div>
-        <div class="box"><strong>Total Products:</strong><br>{{ $data['total_products'] ?? 0 }}</div>
-        <div class="box"><strong>Active KPIs:</strong><br>{{ $data['active_kpis'] ?? 0 }}</div>
-    </div>
+    <h1 style="text-align: center; font-size: 24px; margin-bottom: 20px;">
+        {{ $report->name }}
+    </h1>
 
-    <div class="section">
-        <h2>Top Products</h2>
-        <table>
+    <p><strong>Created On:</strong> {{ $report->created_at->format('d M Y, H:i') }}</p>
+
+    <hr style="margin: 20px 0;">
+
+    <h2 style="font-size: 18px; margin-bottom: 10px;">Summary Metrics</h2>
+    <ul style="list-style-type: none; padding: 0; line-height: 1.6;">
+        <li><strong>Total Users:</strong> {{ $data['total_users'] }}</li>
+        <li><strong>Total Products:</strong> {{ $data['total_products'] }}</li>
+        <li><strong>Active KPIs:</strong> {{ $data['active_kpis'] }}</li>
+    </ul>
+
+    <hr style="margin: 20px 0;">
+
+    <h2 style="font-size: 18px; margin-bottom: 10px;">Top Products</h2>
+    @if (!empty($data['top_products']))
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
             <thead>
                 <tr>
-                    <th>Product</th>
-                    <th>Quantity Sold</th>
-                    <th>Unit Price (Ksh)</th>
-                    <th>Total Sales (Ksh)</th>
+                    <th style="border: 1px solid #ddd; padding: 8px;">#</th>
+                    <th style="border: 1px solid #ddd; padding: 8px;">Product Name</th>
+                    <th style="border: 1px solid #ddd; padding: 8px;">Unit Price (KSh)</th>
+                    <th style="border: 1px solid #ddd; padding: 8px;">Quantity Sold</th>
+                    <th style="border: 1px solid #ddd; padding: 8px;">Total Revenue (KSh)</th>
                 </tr>
             </thead>
             <tbody>
-                @forelse ($data['top_products'] ?? [] as $product)
+                @foreach ($data['top_products'] as $index => $product)
                     <tr>
-                        <td>{{ $product['name'] ?? 'N/A' }}</td>
-                        <td>{{ $product['quantity_sold'] ?? 0 }}</td>
-                        <td>{{ number_format($product['unit_price'] ?? 0, 2) }}</td>
-                        <td>{{ number_format($product['total_ksh'] ?? 0, 2) }}</td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">{{ $index + 1 }}</td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">{{ $product->name }}</td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">{{ number_format($product->unit_price, 2) }}</td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">{{ $product->quantity_sold }}</td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">{{ number_format($product->total_ksh, 2) }}</td>
                     </tr>
-                @empty
-                    <tr><td colspan="4">No top products available</td></tr>
-                @endforelse
+                @endforeach
             </tbody>
         </table>
-    </div>
+    @else
+        <p>No sales data available for top products.</p>
+    @endif
 
-    <div class="section">
-        <h2>Low Stock Items</h2>
-        <table>
+    <hr style="margin: 20px 0;">
+
+    <h2 style="font-size: 18px; margin-bottom: 10px;">Low Stock Items</h2>
+    @if (!empty($data['low_stock_items']))
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
             <thead>
                 <tr>
-                    <th>Item</th>
-                    <th>Stock Level</th>
+                    <th style="border: 1px solid #ddd; padding: 8px;">#</th>
+                    <th style="border: 1px solid #ddd; padding: 8px;">Product Name</th>
+                    <th style="border: 1px solid #ddd; padding: 8px;">Stock Level</th>
                 </tr>
             </thead>
             <tbody>
-                @forelse ($data['low_stock_items'] ?? [] as $item)
+                @foreach ($data['low_stock_items'] as $index => $item)
                     <tr>
-                        <td>{{ $item['name'] ?? 'N/A' }}</td>
-                        <td>{{ $item['stock_level'] ?? 0 }}</td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">{{ $index + 1 }}</td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">{{ $item->name }}</td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">{{ $item->stock_level }}</td>
                     </tr>
-                @empty
-                    <tr><td colspan="2">No low stock items found</td></tr>
-                @endforelse
+                @endforeach
             </tbody>
         </table>
-    </div>
+    @else
+        <p>No low stock items found.</p>
+    @endif
 
-</body>
-</html>
+</div>
+@endsection

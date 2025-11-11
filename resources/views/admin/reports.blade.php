@@ -2,12 +2,13 @@
 
 @section('content')
 <div class="p-8 bg-gray-50 min-h-screen">
-    <div class="flex justify-between items-center mb-8">
-        <h1 class="text-3xl font-bold text-gray-800">Reports Management</h1>
+    <div class="mb-6">
+        <h1 class="text-3xl font-bold text-gray-800 mb-4">Reports Management</h1>
 
         <a href="{{ route('admin.reports.generate') }}" 
-           class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-white font-medium
-                  bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700
+           class="inline-flex items-center gap-2 px-4 py-2 text-purple-600 font-medium rounded-xl
+                  bg-gradient-to-r from-indigo-500 to-blue-600 
+                  hover:from-indigo-600 hover:to-blue-700
                   shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition duration-200">
             <i data-lucide="plus-circle" class="w-5 h-5"></i>
             Generate Admin Summary Report
