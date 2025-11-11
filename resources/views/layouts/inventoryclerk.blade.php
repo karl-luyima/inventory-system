@@ -35,17 +35,24 @@
                     <i data-lucide="bar-chart-3"></i> View Dashboard Metrics
                 </a>
 
-                <a href="{{ route('products.create') }}"
+                <a href="{{ route('clerk.products.create') }}"
                     class="flex items-center gap-2 px-3 py-2 rounded
-                    {{ request()->routeIs('products.create') ? 'bg-green-900 text-white font-semibold' : 'hover:bg-green-600' }}">
+                    {{ request()->routeIs('clerk.products.create') ? 'bg-green-900 text-white font-semibold' : 'hover:bg-green-600' }}">
                     <i data-lucide="plus-square"></i> Add Product
                 </a>
 
-                <a href="{{ route('inventories.create') }}"
+                <a href="{{ route('clerk.inventory.create') }}"
                     class="flex items-center gap-2 px-3 py-2 rounded
-                    {{ request()->routeIs('inventories.create') ? 'bg-green-900 text-white font-semibold' : 'hover:bg-green-600' }}">
+                    {{ request()->routeIs('clerk.inventory.create') ? 'bg-green-900 text-white font-semibold' : 'hover:bg-green-600' }}">
                     <i data-lucide="archive"></i> Add Inventory
                 </a>
+
+                <a href="{{ route('clerk.report') }}"
+                    class="flex items-center gap-2 px-3 py-2 rounded
+    {{ request()->routeIs('clerk.report') ? 'bg-green-900 text-white font-semibold' : 'hover:bg-green-600' }}">
+                    <i data-lucide="file-chart"></i> Report Summary
+                </a>
+
             </nav>
 
             <!-- Logout -->

@@ -99,7 +99,7 @@ document.getElementById('salesForm').addEventListener('submit', function(e) {
         totalAmount: parseFloat(document.getElementById('totalAmount').value)
     };
 
-    fetch("{{ route('analyst.sales.store') }}", {
+    fetch("{{ route('sales.store') }}", {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -141,7 +141,9 @@ function updateSalesTable(sales) {
 
     sales.forEach((sale, index) => {
         const productName = sale.product?.pdt_name || sale.pdt_name || 'N/A';
-        const saleDate = new Date(sale.date || sale.created_at).toLocaleString();
+        // Convert server timestamp to Nairobi time
+        const saleDate = new Date(sale.date || sale.created_at)
+            .toLocaleString('en-KE', { timeZone: 'Africa/Nairobi' });
         const row = `
         <tr class="border-t hover:bg-gray-50">
             <td class="border p-3 text-center">${index + 1}</td>
@@ -203,7 +205,7 @@ function updateTopProductsChart(topProducts) {
 
 // ================= Load initial sales & chart =================
 document.addEventListener('DOMContentLoaded', () => {
-    fetch("{{ route('analyst.sales.data') }}")
+    fetch("{{ route('sales.data') }}")
         .then(res => res.json())
         .then(data => {
             updateSalesTable(data.sales);

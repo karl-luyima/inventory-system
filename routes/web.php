@@ -70,6 +70,9 @@ Route::prefix('clerk')->name('clerk.')->group(function () {
     Route::post('/save-sale', [InventoryClerkController::class, 'saveSale'])->name('saveSale');
     Route::post('/create', [InventoryClerkController::class, 'createClerk'])->name('create');
     Route::get('/metrics', [InventoryClerkController::class, 'metrics'])->name('metrics');
+    Route::get('/report', [InventoryClerkController::class, 'report'])->name('report');
+    Route::get('/report/download', [InventoryClerkController::class, 'downloadReport'])->name('report.download');
+
 
     // Products
     Route::get('/products/create', [InventoryClerkController::class, 'createProduct'])->name('products.create');

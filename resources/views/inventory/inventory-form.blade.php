@@ -6,7 +6,7 @@
 <div class="max-w-2xl mx-auto bg-white p-6 rounded shadow">
     <h2 class="text-xl font-semibold mb-4">Add New Inventory</h2>
 
-    <form action="{{ route('inventories.store') }}" method="POST" class="space-y-4">
+    <form action="{{ route('clerk.inventory.store') }}" method="POST" class="space-y-4">
         @csrf
 
         <!-- Inventory Name -->

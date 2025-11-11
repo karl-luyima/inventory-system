@@ -10,13 +10,15 @@ use App\Models\Kpi;
 use App\Models\Sale;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Barryvdh\DomPDF\Facade\Pdf;
+
 
 class InventoryClerkController extends Controller
 {
     // ================= Dashboard =================
 
 
-    
+
     public function dashboard()
     {
         $products = Product::all();
@@ -176,5 +178,25 @@ class InventoryClerkController extends Controller
         ]);
 
         return redirect()->route('clerk.dashboard')->with('success', 'Inventory created successfully!');
+    }
+
+
+    public function report()
+    {
+        $kpis = Kpi::all();
+        $products = Product::with('inventory')->get();
+        $inventories = Inventory::all();
+
+        return view('inventory.report', compact('kpis', 'products', 'inventories'));
+    }
+
+    public function downloadReport()
+    {
+        $kpis = Kpi::all();
+        $products = Product::with('inventory')->get();
+        $inventories = Inventory::all();
+
+        $pdf = PDF::loadView('inventory.report-pdf', compact('kpis', 'products', 'inventories'));
+        return $pdf->download('inventory-report-' . date('Y-m-d') . '.pdf');
     }
 }

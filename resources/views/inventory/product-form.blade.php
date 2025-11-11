@@ -6,7 +6,7 @@
 <div class="max-w-2xl mx-auto bg-white p-6 rounded shadow">
     <h2 class="text-xl font-semibold mb-4">Add New Product</h2>
 
-    <form action="{{ route('products.store') }}" method="POST" class="space-y-4">
+    <form action="{{ route('clerk.products.store') }}" method="POST" class="space-y-4">
         @csrf
 
         <!-- Product Name -->

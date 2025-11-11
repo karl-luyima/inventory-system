@@ -54,7 +54,17 @@
                 <td>{{ $sale->product->pdt_name ?? 'Unknown' }}</td>
                 <td>{{ $sale->quantity }}</td>
                 <td>Ksh {{ number_format($sale->totalAmount, 2) }}</td>
-                <td>{{ $sale->created_at->format('d M Y H:i') }}</td>
+                <td>
+                    @php
+                        $saleDate = $sale->created_at ?? $sale->date ?? null;
+                    @endphp
+                    {{ $saleDate
+                        ? \Carbon\Carbon::parse($saleDate)
+                            ->timezone(config('app.timezone'))
+                            ->format('d M Y H:i')
+                        : 'N/A'
+                    }}
+                </td>
             </tr>
             @endforeach
         </tbody>

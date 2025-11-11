@@ -109,23 +109,23 @@ class AdminController extends Controller
             ]);
 
         // Top products with sales
-        $topProducts = DB::table('products as p')
-            ->leftJoin('sales as s', 'p.pdt_id', '=', 's.pdt_id')
+        $topProducts = DB::table('products')
+            ->leftJoin('sales', 'products.pdt_id', '=', 'sales.pdt_id')
             ->select(
-                'p.pdt_name as name',
-                'p.price as unit_price',
-                DB::raw('COALESCE(SUM(s.quantity), 0) as quantity_sold'),
-                DB::raw('COALESCE(SUM(s.totalAmount), 0) as total_ksh')
+                'products.pdt_name',
+                'products.price',
+                DB::raw('COALESCE(SUM(sales.quantity), 0) as quantity_sold'),
+                DB::raw('COALESCE(SUM(sales.totalAmount), 0) as total_ksh')
             )
-            ->groupBy('p.pdt_id', 'p.pdt_name', 'p.price')
+            ->groupBy('products.pdt_id', 'products.pdt_name', 'products.price')
             ->orderByDesc('quantity_sold')
             ->limit(5)
             ->get()
             ->map(fn($p) => [
-                'name' => $p->name ?? 'N/A',
-                'quantity_sold' => (int) $p->quantity_sold,
-                'unit_price' => (float) $p->unit_price,
-                'total_ksh' => (float) $p->total_ksh,
+                'name' => $p->pdt_name ?? 'N/A',
+                'quantity_sold' => $p->quantity_sold ?? 0,
+                'unit_price' => $p->price ?? 0,
+                'total_ksh' => $p->total_ksh ?? 0,
             ]);
 
         // Save report
@@ -184,7 +184,6 @@ class AdminController extends Controller
         ]);
 
         Kpi::create($request->only(['title', 'value', 'color']));
-
         return redirect()->route('admin.kpis')->with('success', 'KPI added successfully!');
     }
 
@@ -204,7 +203,6 @@ class AdminController extends Controller
 
         $kpi = Kpi::findOrFail($id);
         $kpi->update($request->only(['title', 'value', 'color']));
-
         return redirect()->route('admin.kpis')->with('success', 'KPI updated successfully!');
     }
 
@@ -217,15 +215,15 @@ class AdminController extends Controller
     // ================= Top Products =================
     public function topProducts()
     {
-        $topProducts = DB::table('products as p')
-            ->leftJoin('sales as s', 'p.pdt_id', '=', 's.pdt_id')
+        $topProducts = DB::table('products')
+            ->leftJoin('sales', 'products.pdt_id', '=', 'sales.pdt_id')
             ->select(
-                'p.pdt_name as name',
-                'p.price as unit_price',
-                DB::raw('COALESCE(SUM(s.quantity), 0) as quantity_sold'),
-                DB::raw('COALESCE(SUM(s.totalAmount), 0) as total_ksh')
+                'products.pdt_name as name',
+                'products.price as unit_price',
+                DB::raw('COALESCE(SUM(sales.quantity), 0) as quantity_sold'),
+                DB::raw('COALESCE(SUM(sales.totalAmount), 0) as total_ksh')
             )
-            ->groupBy('p.pdt_id', 'p.pdt_name', 'p.price')
+            ->groupBy('products.pdt_id', 'products.pdt_name', 'products.price')
             ->orderByDesc('quantity_sold')
             ->limit(5)
             ->get();
