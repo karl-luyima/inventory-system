@@ -31,23 +31,31 @@
     @endif
 
     {{-- KPI Cards --}}
+    @php
+        $colorMap = [
+            'blue'   => 'bg-gradient-to-r from-kpi-blue to-kpi-blue/80',
+            'green'  => 'bg-gradient-to-r from-kpi-green to-kpi-green/80',
+            'yellow' => 'bg-gradient-to-r from-kpi-yellow to-kpi-yellow/80',
+            'red'    => 'bg-gradient-to-r from-kpi-red to-kpi-red/80',
+            'purple' => 'bg-gradient-to-r from-kpi-purple to-kpi-purple/80',
+        ];
+    @endphp
+
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         @forelse($kpis as $kpi)
-            <div class="relative p-6 rounded-2xl shadow-lg transition transform hover:scale-105 hover:shadow-xl text-white
-                @if($kpi->color == 'blue') bg-gradient-to-r from-kpi-blue to-kpi-blue/80
-                @elseif($kpi->color == 'green') bg-gradient-to-r from-kpi-green to-kpi-green/80
-                @elseif($kpi->color == 'yellow') bg-gradient-to-r from-kpi-yellow to-kpi-yellow/80
-                @elseif($kpi->color == 'red') bg-gradient-to-r from-kpi-red to-kpi-red/80
-                @elseif($kpi->color == 'purple') bg-gradient-to-r from-kpi-purple to-kpi-purple/80
-                @else bg-gray-500
-                @endif
-            ">
+            <div class="relative p-6 rounded-2xl shadow-lg transition transform hover:scale-105 hover:shadow-xl text-white {{ $colorMap[$kpi->color] ?? 'bg-gray-500' }} flex flex-col justify-between">
 
-                {{-- Overlay to enhance text visibility --}}
-                <div class="absolute inset-0 bg-black/20 rounded-2xl pointer-events-none"></div>
+                {{-- Overlay for better contrast --}}
+                <div class="absolute inset-0 bg-black/10 rounded-2xl pointer-events-none"></div>
 
-                {{-- Action Buttons Above --}}
-                <div class="absolute -top-3 right-3 flex gap-2 z-10">
+                {{-- KPI Title & Value --}}
+                <div class="relative z-10">
+                    <h2 class="text-base font-semibold break-words drop-shadow-md">{{ $kpi->title ?? 'No Title' }}</h2>
+                    <p class="text-2xl font-bold mt-1 drop-shadow-md">{{ $kpi->value ?? 'N/A' }}</p>
+                </div>
+
+                {{-- Action Buttons at bottom-right --}}
+                <div class="absolute bottom-3 right-3 flex gap-2 z-10">
                     <a href="{{ route('admin.kpis.edit', $kpi->id) }}" 
                        class="bg-yellow-400 text-white px-2 py-1 rounded text-xs hover:bg-yellow-500 shadow">
                         ✎
@@ -58,12 +66,6 @@
                         <button class="bg-red-600 text-white px-2 py-1 rounded text-xs hover:bg-red-700 shadow">✖</button>
                     </form>
                 </div>
-
-                {{-- KPI Title --}}
-                <h2 class="text-base font-semibold mt-4 relative z-10 break-words">{{ $kpi->title ?? 'No Title' }}</h2>
-                
-                {{-- KPI Value --}}
-                <p class="text-2xl font-bold mt-1 relative z-10">{{ $kpi->value ?? 'N/A' }}</p>
 
             </div>
         @empty

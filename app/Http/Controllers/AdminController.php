@@ -104,21 +104,31 @@ class AdminController extends Controller
 
         // Low stock items
         $lowStockItems = Product::where('stock_level', '<=', 5)
-            ->get(['pdt_name as name', 'stock_level']);
+            ->get(['pdt_name', 'stock_level'])
+            ->map(fn($item) => [
+                'name' => $item->pdt_name,
+                'stock_level' => $item->stock_level,
+            ]);
 
         // Top products (sum sales quantity)
         $topProducts = DB::table('products')
             ->leftJoin('sales', 'products.pdt_id', '=', 'sales.pdt_id')
             ->select(
-                'products.pdt_name as name',
-                'products.price as unit_price',
-                DB::raw('COALESCE(SUM(sales.quantity), 0) as quantity_sold'),
-                DB::raw('COALESCE(products.price * SUM(sales.quantity), 0) as total_ksh')
+                'products.pdt_name',
+                'products.price',
+                DB::raw('COALESCE(SUM(sales.quantity), 0) as sales_sum_quantity'),
+                DB::raw('COALESCE(products.price * SUM(sales.quantity), 0) as total_sales_ksh')
             )
             ->groupBy('products.pdt_id', 'products.pdt_name', 'products.price')
-            ->orderByDesc('quantity_sold')
+            ->orderByDesc('sales_sum_quantity')
             ->limit(5)
-            ->get();
+            ->get()
+            ->map(fn($p) => [
+                'pdt_name' => $p->pdt_name,
+                'sales_sum_quantity' => $p->sales_sum_quantity,
+                'unit_price' => $p->price,
+                'total_sales_ksh' => $p->total_sales_ksh,
+            ]);
 
         // Save report
         Report::create([

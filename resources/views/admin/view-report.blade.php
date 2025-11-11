@@ -15,9 +15,6 @@
 
     <div class="bg-white rounded-xl shadow-lg p-6">
         <h2 class="text-xl font-semibold text-gray-700 mb-2">{{ $report->name }}</h2>
-        <p class="text-gray-500 text-sm mb-4">
-            Created by: <strong class="text-gray-800">{{ $report->creator_name ?? ucfirst($report->creator_type) }}</strong>
-        </p>
         <p class="text-gray-500 text-sm mb-6">
             Created on: {{ $report->created_at->format('d M Y, H:i') }}
         </p>

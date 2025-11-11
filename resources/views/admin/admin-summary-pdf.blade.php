@@ -11,6 +11,7 @@
         th { background: #f7f7f7; }
         ul { list-style: none; padding: 0; }
         .section { margin-bottom: 20px; }
+        td.text-center { text-align: center; }
     </style>
 </head>
 <body>
@@ -20,16 +21,16 @@
 
     <div class="section">
         <h3>📊 Summary</h3>
-        <p><strong>Total Users:</strong> {{ $data['total_users'] }}</p>
-        <p><strong>Active KPIs:</strong> {{ $data['active_kpis'] }}</p>
-        <p><strong>Total Products:</strong> {{ $data['total_products'] }}</p>
+        <p><strong>Total Users:</strong> {{ $data['total_users'] ?? 0 }}</p>
+        <p><strong>Active KPIs:</strong> {{ $data['active_kpis'] ?? 0 }}</p>
+        <p><strong>Total Products:</strong> {{ $data['total_products'] ?? 0 }}</p>
     </div>
 
     <div class="section">
         <h3>⚠️ Low Stock Items</h3>
         <ul>
-            @forelse ($data['low_stock_items'] as $item)
-                <li>{{ $item['name'] }} — {{ $item['stock_level'] }} left</li>
+            @forelse ($data['low_stock_items'] ?? [] as $item)
+                <li>{{ $item['name'] ?? 'Unknown' }} — {{ $item['stock_level'] ?? 0 }} left</li>
             @empty
                 <li>No low stock items.</li>
             @endforelse
@@ -43,15 +44,23 @@
                 <tr>
                     <th>Product</th>
                     <th>Quantity Sold</th>
+                    <th>Unit Price (Ksh)</th>
+                    <th>Total Sales (Ksh)</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach ($data['top_products'] as $p)
+                @forelse ($data['top_products'] ?? [] as $p)
                     <tr>
-                        <td>{{ $p['pdt_name'] }}</td>
-                        <td>{{ $p['sales_sum_quantity'] }}</td>
+                        <td>{{ $p['name'] ?? 'N/A' }}</td>
+                        <td>{{ $p['quantity_sold'] ?? 0 }}</td>
+                        <td>{{ number_format($p['unit_price'] ?? 0, 2) }}</td>
+                        <td>{{ number_format($p['total_ksh'] ?? 0, 2) }}</td>
                     </tr>
-                @endforeach
+                @empty
+                    <tr>
+                        <td colspan="4" class="text-center">No top products found.</td>
+                    </tr>
+                @endforelse
             </tbody>
         </table>
     </div>
