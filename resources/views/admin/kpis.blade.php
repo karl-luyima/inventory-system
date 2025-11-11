@@ -31,24 +31,23 @@
     @endif
 
     {{-- KPI Cards --}}
-    @php
-        $colorMap = [
-            'blue' => 'bg-gradient-to-r from-blue-500 to-blue-600',
-            'green' => 'bg-gradient-to-r from-green-500 to-green-600',
-            'yellow' => 'bg-gradient-to-r from-yellow-400 to-yellow-500',
-            'red' => 'bg-gradient-to-r from-red-500 to-red-600',
-            'purple' => 'bg-gradient-to-r from-purple-500 to-purple-600',
-        ];
-    @endphp
-
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         @forelse($kpis as $kpi)
-            <div class="relative p-6 rounded-2xl shadow-lg transition transform hover:scale-105 hover:shadow-xl text-white {{ $colorMap[$kpi->color] ?? 'bg-gray-500' }}">
-                <h2 class="text-lg font-semibold">{{ $kpi->title }}</h2>
-                <p class="text-4xl font-bold mt-2">{{ $kpi->value }}</p>
+            <div class="relative p-6 rounded-2xl shadow-lg transition transform hover:scale-105 hover:shadow-xl text-white
+                @if($kpi->color == 'blue') bg-gradient-to-r from-kpi-blue to-kpi-blue/80
+                @elseif($kpi->color == 'green') bg-gradient-to-r from-kpi-green to-kpi-green/80
+                @elseif($kpi->color == 'yellow') bg-gradient-to-r from-kpi-yellow to-kpi-yellow/80
+                @elseif($kpi->color == 'red') bg-gradient-to-r from-kpi-red to-kpi-red/80
+                @elseif($kpi->color == 'purple') bg-gradient-to-r from-kpi-purple to-kpi-purple/80
+                @else bg-gray-500
+                @endif
+            ">
 
-                {{-- Action Buttons --}}
-                <div class="absolute top-3 right-3 flex gap-2">
+                {{-- Overlay to enhance text visibility --}}
+                <div class="absolute inset-0 bg-black/20 rounded-2xl pointer-events-none"></div>
+
+                {{-- Action Buttons Above --}}
+                <div class="absolute -top-3 right-3 flex gap-2 z-10">
                     <a href="{{ route('admin.kpis.edit', $kpi->id) }}" 
                        class="bg-yellow-400 text-white px-2 py-1 rounded text-xs hover:bg-yellow-500 shadow">
                         ✎
@@ -59,6 +58,13 @@
                         <button class="bg-red-600 text-white px-2 py-1 rounded text-xs hover:bg-red-700 shadow">✖</button>
                     </form>
                 </div>
+
+                {{-- KPI Title --}}
+                <h2 class="text-base font-semibold mt-4 relative z-10 break-words">{{ $kpi->title ?? 'No Title' }}</h2>
+                
+                {{-- KPI Value --}}
+                <p class="text-2xl font-bold mt-1 relative z-10">{{ $kpi->value ?? 'N/A' }}</p>
+
             </div>
         @empty
             <p class="col-span-3 text-center text-gray-500">No KPIs yet. Add one below 👇</p>
