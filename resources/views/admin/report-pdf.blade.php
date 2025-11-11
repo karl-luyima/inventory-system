@@ -1,78 +1,93 @@
 @extends('layouts.pdf')
 
 @section('content')
-<div style="font-family: sans-serif; padding: 20px;">
+<div class="pdf-container" style="font-family: DejaVu Sans, sans-serif; color: #333; padding: 20px;">
 
-    <h1 style="text-align: center; font-size: 24px; margin-bottom: 20px;">
-        {{ $report->name }}
-    </h1>
+    {{-- Header --}}
+    <div class="pdf-header" style="text-align:center; margin-bottom:30px;">
+        <h1 class="pdf-title" style="margin-bottom:5px;">{{ $report->name }}</h1>
+        <p class="pdf-date" style="color:#7f8c8d;">Generated On: {{ \Carbon\Carbon::parse($report->created_at)->format('d M Y, H:i') }}</p>
+        <hr style="margin-top:10px; margin-bottom:20px;">
+    </div>
 
-    <p><strong>Created On:</strong> {{ $report->created_at->format('d M Y, H:i') }}</p>
+    {{-- Summary Metrics --}}
+    <div class="pdf-section" style="margin-bottom:30px;">
+        <h2 class="pdf-section-title" style="border-bottom:1px solid #ccc; padding-bottom:5px;">Summary Metrics</h2>
+        <div class="pdf-summary" style="display:flex; gap:40px; margin-top:10px;">
+            <div class="pdf-summary-item">
+                <strong>Total Users</strong><br>{{ $data['total_users'] ?? 0 }}
+            </div>
+            <div class="pdf-summary-item">
+                <strong>Active KPIs</strong><br>{{ $data['active_kpis'] ?? 0 }}
+            </div>
+            <div class="pdf-summary-item">
+                <strong>Total Products</strong><br>{{ $data['total_products'] ?? 0 }}
+            </div>
+        </div>
+    </div>
 
-    <hr style="margin: 20px 0;">
-
-    <h2 style="font-size: 18px; margin-bottom: 10px;">Summary Metrics</h2>
-    <ul style="list-style-type: none; padding: 0; line-height: 1.6;">
-        <li><strong>Total Users:</strong> {{ $data['total_users'] }}</li>
-        <li><strong>Total Products:</strong> {{ $data['total_products'] }}</li>
-        <li><strong>Active KPIs:</strong> {{ $data['active_kpis'] }}</li>
-    </ul>
-
-    <hr style="margin: 20px 0;">
-
-    <h2 style="font-size: 18px; margin-bottom: 10px;">Top Products</h2>
-    @if (!empty($data['top_products']))
-        <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+    {{-- Top Products --}}
+    <div class="pdf-section" style="margin-bottom:30px;">
+        <h2 class="pdf-section-title" style="border-bottom:1px solid #ccc; padding-bottom:5px;">Top Products</h2>
+        @if(!empty($data['top_products']))
+        <table class="pdf-table" style="width:100%; border-collapse: collapse; margin-top:10px;">
             <thead>
-                <tr>
-                    <th style="border: 1px solid #ddd; padding: 8px;">#</th>
-                    <th style="border: 1px solid #ddd; padding: 8px;">Product Name</th>
-                    <th style="border: 1px solid #ddd; padding: 8px;">Unit Price (KSh)</th>
-                    <th style="border: 1px solid #ddd; padding: 8px;">Quantity Sold</th>
-                    <th style="border: 1px solid #ddd; padding: 8px;">Total Revenue (KSh)</th>
+                <tr style="background:#f7f7f7;">
+                    <th style="border:1px solid #ccc; padding:8px;">#</th>
+                    <th style="border:1px solid #ccc; padding:8px;">Product Name</th>
+                    <th style="border:1px solid #ccc; padding:8px;">Unit Price (Ksh)</th>
+                    <th style="border:1px solid #ccc; padding:8px;">Quantity Sold</th>
+                    <th style="border:1px solid #ccc; padding:8px;">Total Revenue (Ksh)</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach ($data['top_products'] as $index => $product)
-                    <tr>
-                        <td style="border: 1px solid #ddd; padding: 8px;">{{ $index + 1 }}</td>
-                        <td style="border: 1px solid #ddd; padding: 8px;">{{ $product->name }}</td>
-                        <td style="border: 1px solid #ddd; padding: 8px;">{{ number_format($product->unit_price, 2) }}</td>
-                        <td style="border: 1px solid #ddd; padding: 8px;">{{ $product->quantity_sold }}</td>
-                        <td style="border: 1px solid #ddd; padding: 8px;">{{ number_format($product->total_ksh, 2) }}</td>
-                    </tr>
+                @foreach($data['top_products'] as $index => $product)
+                <tr style="{{ $index % 2 == 0 ? 'background:#f9f9f9;' : '' }}">
+                    <td style="border:1px solid #ccc; padding:8px; text-align:center;">{{ $index + 1 }}</td>
+                    <td style="border:1px solid #ccc; padding:8px;">{{ $product['name'] ?? 'N/A' }}</td>
+                    <td style="border:1px solid #ccc; padding:8px; text-align:right;">{{ number_format($product['unit_price'] ?? 0, 2) }}</td>
+                    <td style="border:1px solid #ccc; padding:8px; text-align:center;">{{ $product['quantity_sold'] ?? 0 }}</td>
+                    <td style="border:1px solid #ccc; padding:8px; text-align:right;">{{ number_format($product['total_ksh'] ?? 0, 2) }}</td>
+                </tr>
                 @endforeach
             </tbody>
         </table>
-    @else
-        <p>No sales data available for top products.</p>
-    @endif
+        @else
+        <p class="pdf-empty" style="color:#7f8c8d;">No sales data available.</p>
+        @endif
+    </div>
 
-    <hr style="margin: 20px 0;">
-
-    <h2 style="font-size: 18px; margin-bottom: 10px;">Low Stock Items</h2>
-    @if (!empty($data['low_stock_items']))
-        <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+    {{-- Low Stock Items --}}
+    <div class="pdf-section" style="margin-bottom:30px;">
+        <h2 class="pdf-section-title" style="border-bottom:1px solid #ccc; padding-bottom:5px;">Low Stock Items</h2>
+        @if(!empty($data['low_stock_items']))
+        <table class="pdf-table" style="width:100%; border-collapse: collapse; margin-top:10px;">
             <thead>
-                <tr>
-                    <th style="border: 1px solid #ddd; padding: 8px;">#</th>
-                    <th style="border: 1px solid #ddd; padding: 8px;">Product Name</th>
-                    <th style="border: 1px solid #ddd; padding: 8px;">Stock Level</th>
+                <tr style="background:#f7f7f7;">
+                    <th style="border:1px solid #ccc; padding:8px;">#</th>
+                    <th style="border:1px solid #ccc; padding:8px;">Product Name</th>
+                    <th style="border:1px solid #ccc; padding:8px;">Stock Level</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach ($data['low_stock_items'] as $index => $item)
-                    <tr>
-                        <td style="border: 1px solid #ddd; padding: 8px;">{{ $index + 1 }}</td>
-                        <td style="border: 1px solid #ddd; padding: 8px;">{{ $item->name }}</td>
-                        <td style="border: 1px solid #ddd; padding: 8px;">{{ $item->stock_level }}</td>
-                    </tr>
+                @foreach($data['low_stock_items'] as $index => $item)
+                <tr style="{{ $index % 2 == 0 ? 'background:#f9f9f9;' : '' }}">
+                    <td style="border:1px solid #ccc; padding:8px; text-align:center;">{{ $index + 1 }}</td>
+                    <td style="border:1px solid #ccc; padding:8px;">{{ $item['name'] ?? 'N/A' }}</td>
+                    <td style="border:1px solid #ccc; padding:8px; text-align:center;">{{ $item['stock_level'] ?? 0 }}</td>
+                </tr>
                 @endforeach
             </tbody>
         </table>
-    @else
-        <p>No low stock items found.</p>
-    @endif
+        @else
+        <p class="pdf-empty" style="color:#7f8c8d;">No low stock items found.</p>
+        @endif
+    </div>
+
+    {{-- Footer --}}
+    <div class="pdf-footer" style="text-align:center; margin-top:50px; font-size:12px; color:#7f8c8d;">
+        <p>Generated by Inventory Management System | &copy; {{ date('Y') }}</p>
+    </div>
 
 </div>
 @endsection

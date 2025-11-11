@@ -11,7 +11,6 @@ use App\Models\Product;
 use App\Models\Report;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Barryvdh\DomPDF\Facade\Pdf;
-use Illuminate\Support\Facades\Auth;
 
 class AdminController extends Controller
 {
@@ -71,7 +70,6 @@ class AdminController extends Controller
         return view('admin.users', ['users' => $paginatedUsers]);
     }
 
-    // ================= Delete User =================
     public function deleteUser(Request $request, $id)
     {
         $type = $request->query('type');
@@ -110,24 +108,24 @@ class AdminController extends Controller
                 'stock_level' => $item->stock_level,
             ]);
 
-        // Top products (sum sales quantity)
-        $topProducts = DB::table('products')
-            ->leftJoin('sales', 'products.pdt_id', '=', 'sales.pdt_id')
+        // Top products with sales
+        $topProducts = DB::table('products as p')
+            ->leftJoin('sales as s', 'p.pdt_id', '=', 's.pdt_id')
             ->select(
-                'products.pdt_name',
-                'products.price',
-                DB::raw('COALESCE(SUM(sales.quantity), 0) as sales_sum_quantity'),
-                DB::raw('COALESCE(products.price * SUM(sales.quantity), 0) as total_sales_ksh')
+                'p.pdt_name as name',
+                'p.price as unit_price',
+                DB::raw('COALESCE(SUM(s.quantity), 0) as quantity_sold'),
+                DB::raw('COALESCE(SUM(s.totalAmount), 0) as total_ksh')
             )
-            ->groupBy('products.pdt_id', 'products.pdt_name', 'products.price')
-            ->orderByDesc('sales_sum_quantity')
+            ->groupBy('p.pdt_id', 'p.pdt_name', 'p.price')
+            ->orderByDesc('quantity_sold')
             ->limit(5)
             ->get()
             ->map(fn($p) => [
-                'pdt_name' => $p->pdt_name,
-                'sales_sum_quantity' => $p->sales_sum_quantity,
-                'unit_price' => $p->price,
-                'total_sales_ksh' => $p->total_sales_ksh,
+                'name' => $p->name ?? 'N/A',
+                'quantity_sold' => (int) $p->quantity_sold,
+                'unit_price' => (float) $p->unit_price,
+                'total_ksh' => (float) $p->total_ksh,
             ]);
 
         // Save report
@@ -185,11 +183,7 @@ class AdminController extends Controller
             'color' => 'required|string|in:blue,green,yellow,red,purple',
         ]);
 
-        Kpi::create([
-            'title' => $request->title,
-            'value' => $request->value,
-            'color' => $request->color,
-        ]);
+        Kpi::create($request->only(['title', 'value', 'color']));
 
         return redirect()->route('admin.kpis')->with('success', 'KPI added successfully!');
     }
@@ -209,35 +203,29 @@ class AdminController extends Controller
         ]);
 
         $kpi = Kpi::findOrFail($id);
-        $kpi->update([
-            'title' => $request->title,
-            'value' => $request->value,
-            'color' => $request->color,
-        ]);
+        $kpi->update($request->only(['title', 'value', 'color']));
 
         return redirect()->route('admin.kpis')->with('success', 'KPI updated successfully!');
     }
 
     public function deleteKpi($id)
     {
-        $kpi = Kpi::findOrFail($id);
-        $kpi->delete();
-
+        Kpi::findOrFail($id)->delete();
         return redirect()->route('admin.kpis')->with('success', 'KPI deleted successfully!');
     }
 
     // ================= Top Products =================
     public function topProducts()
     {
-        $topProducts = DB::table('products')
-            ->leftJoin('sales', 'products.pdt_id', '=', 'sales.pdt_id')
+        $topProducts = DB::table('products as p')
+            ->leftJoin('sales as s', 'p.pdt_id', '=', 's.pdt_id')
             ->select(
-                'products.pdt_name as name',
-                'products.price as unit_price',
-                DB::raw('COALESCE(SUM(sales.quantity), 0) as quantity_sold'),
-                DB::raw('COALESCE(products.price * SUM(sales.quantity), 0) as total_ksh')
+                'p.pdt_name as name',
+                'p.price as unit_price',
+                DB::raw('COALESCE(SUM(s.quantity), 0) as quantity_sold'),
+                DB::raw('COALESCE(SUM(s.totalAmount), 0) as total_ksh')
             )
-            ->groupBy('products.pdt_id', 'products.pdt_name', 'products.price')
+            ->groupBy('p.pdt_id', 'p.pdt_name', 'p.price')
             ->orderByDesc('quantity_sold')
             ->limit(5)
             ->get();
@@ -251,15 +239,12 @@ class AdminController extends Controller
         return view('admin.settings');
     }
 
-    // ================= Delete Report =================
     public function deleteReport($id)
     {
-        $report = Report::findOrFail($id);
-        $report->delete();
+        Report::findOrFail($id)->delete();
         return redirect()->route('admin.reports')->with('success', 'Report deleted successfully!');
     }
 
-    // ================= Inventory Data =================
     public function inventoryData()
     {
         $totalProducts = Product::count();

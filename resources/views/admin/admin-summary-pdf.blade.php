@@ -4,33 +4,36 @@
     <meta charset="utf-8">
     <title>{{ $report->name }}</title>
     <style>
-        body { font-family: DejaVu Sans, sans-serif; color: #333; }
-        h1, h2, h3 { color: #2c3e50; }
+        body { font-family: DejaVu Sans, sans-serif; font-size: 12px; color: #333; }
+        h1, h2, h3 { color: #2c3e50; margin-bottom: 5px; }
+        hr { border: none; border-top: 1px solid #ccc; margin: 10px 0; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+        th, td { border: 1px solid #ccc; padding: 6px; text-align: left; font-size: 12px; }
         th { background: #f7f7f7; }
         ul { list-style: none; padding: 0; }
-        .section { margin-bottom: 20px; }
-        td.text-center { text-align: center; }
+        li { margin-bottom: 4px; }
+        .section { margin-bottom: 15px; }
+        .text-center { text-align: center; }
+        .low-stock { color: red; font-weight: bold; }
     </style>
 </head>
 <body>
     <h1>{{ $report->name }}</h1>
-    <p><strong>Date:</strong> {{ $report->created_at->format('d M Y, H:i A') }}</p>
+    <p><strong>Date:</strong> {{ \Carbon\Carbon::parse($report->created_at)->format('d M Y, H:i A') }}</p>
     <hr>
 
     <div class="section">
-        <h3>📊 Summary</h3>
+        <h3>Summary</h3>
         <p><strong>Total Users:</strong> {{ $data['total_users'] ?? 0 }}</p>
         <p><strong>Active KPIs:</strong> {{ $data['active_kpis'] ?? 0 }}</p>
         <p><strong>Total Products:</strong> {{ $data['total_products'] ?? 0 }}</p>
     </div>
 
     <div class="section">
-        <h3>⚠️ Low Stock Items</h3>
+        <h3>Low Stock Items</h3>
         <ul>
             @forelse ($data['low_stock_items'] ?? [] as $item)
-                <li>{{ $item['name'] ?? 'Unknown' }} — {{ $item['stock_level'] ?? 0 }} left</li>
+                <li class="low-stock">{{ $item['name'] ?? 'Unknown' }} — {{ $item['stock_level'] ?? 0 }} left</li>
             @empty
                 <li>No low stock items.</li>
             @endforelse
@@ -38,7 +41,7 @@
     </div>
 
     <div class="section">
-        <h3>🔥 Top 5 Products</h3>
+        <h3>Top 5 Products</h3>
         <table>
             <thead>
                 <tr>
