@@ -22,8 +22,28 @@ class AdminController extends Controller
 
     public function home()
     {
+        // Total users
         $totalUsers = InventoryClerk::count() + SalesAnalyst::count();
-        $activeKpis = Kpi::count();
+
+        // Static quick info KPIs
+        $quickInfo = [
+            (object)[
+                'title' => 'Total Users',
+                'value' => $totalUsers,
+                'color' => 'blue',
+            ],
+            (object)[
+                'title' => 'Active KPIs',
+                'value' => Kpi::count(),
+                'color' => 'green',
+            ],
+        ];
+
+        // Fetch KPIs stored in database
+        $dbKpis = Kpi::all();
+
+        // Merge static KPIs + DB KPIs
+        $activeKpis = collect($quickInfo)->merge($dbKpis);
 
         return view('admin.home', compact('totalUsers', 'activeKpis'));
     }
@@ -95,7 +115,6 @@ class AdminController extends Controller
 
     public function generateSummaryReport()
     {
-        // Total metrics
         $totalUsers = InventoryClerk::count() + SalesAnalyst::count();
         $activeKpis = Kpi::count();
         $totalProducts = Product::count();
@@ -108,7 +127,7 @@ class AdminController extends Controller
                 'stock_level' => $item->stock_level,
             ]);
 
-        // Top products with sales
+        // Top products
         $topProducts = DB::table('products')
             ->leftJoin('sales', 'products.pdt_id', '=', 'sales.pdt_id')
             ->select(
@@ -128,7 +147,6 @@ class AdminController extends Controller
                 'total_ksh' => $p->total_ksh ?? 0,
             ]);
 
-        // Save report
         Report::create([
             'name' => 'Admin Dashboard Summary',
             'creator_type' => null,
@@ -171,7 +189,7 @@ class AdminController extends Controller
     // ================= KPIs =================
     public function kpis()
     {
-        $kpis = Kpi::paginate(10);
+        $kpis = Kpi::all();
         return view('admin.kpis', compact('kpis'));
     }
 
@@ -255,3 +273,4 @@ class AdminController extends Controller
         ]);
     }
 }
+

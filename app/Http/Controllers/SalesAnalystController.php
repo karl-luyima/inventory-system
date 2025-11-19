@@ -6,13 +6,17 @@ use Illuminate\Http\Request;
 use App\Models\Product;
 use App\Models\Sale;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Http;
 
 class SalesAnalystController extends Controller
 {
     // ================= Dashboard =================
     public function dashboard()
     {
-        $sales = Sale::with('product')->orderBy('created_at', 'desc')->take(10)->get();
+        $sales = Sale::with('product')
+            ->orderBy('created_at', 'desc')
+            ->take(10)
+            ->get();
 
         $topProducts = Product::withSum('sales', 'quantity')
             ->withSum('sales', 'totalAmount')
@@ -32,22 +36,24 @@ class SalesAnalystController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'pdt_name' => 'required|string|max:255',
-            'quantity' => 'required|integer|min:1',
-            'totalAmount' => 'required|numeric|min:0',
-            'inventory_id' => 'required|exists:inventories,inventory_id',
+            'pdt_name'      => 'required|string|max:255',
+            'quantity'      => 'required|integer|min:1',
+            'totalAmount'   => 'required|numeric|min:0',
+            'inventory_id'  => 'required|exists:inventories,inventory_id',
         ]);
 
         try {
+            // Create or find product
             $product = Product::firstOrCreate(
                 ['pdt_name' => $request->pdt_name],
                 [
-                    'price' => $request->price ?? 0,
-                    'stock_level' => $request->stock_level ?? 0,
-                    'inventory_id' => $request->inventory_id,
+                    'price'         => $request->price ?? 0,
+                    'stock_level'   => $request->stock_level ?? 0,
+                    'inventory_id'  => $request->inventory_id,
                 ]
             );
 
+            // Stock validation
             if ($product->stock_level < $request->quantity) {
                 return response()->json([
                     'success' => false,
@@ -55,20 +61,44 @@ class SalesAnalystController extends Controller
                 ], 400);
             }
 
+            // Deduct stock
             $product->stock_level -= $request->quantity;
             $product->save();
 
-            $sale = Sale::create([
-                'pdt_id' => $product->pdt_id,
-                'quantity' => $request->quantity,
+            // Save sale
+            Sale::create([
+                'pdt_id'      => $product->pdt_id,
+                'quantity'    => $request->quantity,
                 'totalAmount' => $request->totalAmount,
-                'date' => now(),
+                'date'        => now(),
             ]);
 
+            // 🔥 Fetch updated sales for dashboard
+            $sales = Sale::with('product')
+                ->orderBy('created_at', 'desc')
+                ->take(10)
+                ->get();
+
+            // 🔥 Fetch updated top products
+            $topProducts = Product::withSum('sales', 'quantity')
+                ->withSum('sales', 'totalAmount')
+                ->orderByDesc('sales_sum_quantity')
+                ->take(5)
+                ->get()
+                ->map(fn($product) => (object)[
+                    'pdt_name'     => $product->pdt_name,
+                    'total_sold'   => $product->sales_sum_quantity ?? 0,
+                    'total_amount' => $product->{"sales_sum_total_amount"} ?? 0
+                ]);
+
+            // Return JSON that the JS expects
             return response()->json([
-                'success' => true,
-                'message' => 'Sale recorded successfully!',
+                'success'     => true,
+                'message'     => 'Sale recorded successfully!',
+                'sales'       => $sales,
+                'topProducts' => $topProducts,
             ]);
+
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -95,7 +125,10 @@ class SalesAnalystController extends Controller
                 'total_sold' => $product->sales_sum_quantity ?? 0
             ]);
 
-        return view('sales.reports', compact('sales', 'totalSales', 'totalRevenue', 'totalProducts', 'topProducts'));
+        return view(
+            'sales.reports',
+            compact('sales', 'totalSales', 'totalRevenue', 'totalProducts', 'topProducts')
+        );
     }
 
     // ================= Download Report PDF =================
@@ -110,8 +143,8 @@ class SalesAnalystController extends Controller
             ->get()
             ->filter(fn($product) => $product->sales_sum_quantity > 0)
             ->map(fn($product) => (object)[
-                'pdt_name' => $product->pdt_name,
-                'total_sold' => $product->sales_sum_quantity ?? 0,
+                'pdt_name'     => $product->pdt_name,
+                'total_sold'   => $product->sales_sum_quantity ?? 0,
                 'total_amount' => $product->{"sales_sum_total_amount"} ?? 0
             ]);
 
@@ -132,10 +165,13 @@ class SalesAnalystController extends Controller
         return $pdf->download('sales_report_' . now()->format('Ymd_His') . '.pdf');
     }
 
-    // ================= Fetch Sales Data for JS =================
+    // ================= Fetch Sales Data for JS (initial load) =================
     public function fetchSalesData()
     {
-        $sales = Sale::with('product')->orderBy('created_at', 'desc')->take(10)->get();
+        $sales = Sale::with('product')
+            ->orderBy('created_at', 'desc')
+            ->take(10)
+            ->get();
 
         $topProducts = Product::withSum('sales', 'quantity')
             ->withSum('sales', 'totalAmount')
@@ -143,14 +179,39 @@ class SalesAnalystController extends Controller
             ->take(5)
             ->get()
             ->map(fn($product) => (object)[
-                'pdt_name' => $product->pdt_name,
-                'total_sold' => $product->sales_sum_quantity ?? 0,
+                'pdt_name'     => $product->pdt_name,
+                'total_sold'   => $product->sales_sum_quantity ?? 0,
                 'total_amount' => $product->{"sales_sum_total_amount"} ?? 0
             ]);
 
         return response()->json([
-            'sales' => $sales,
+            'sales'       => $sales,
             'topProducts' => $topProducts
         ]);
     }
+
+    public function showForecastForm()
+    {
+        return view('sales.forecast-form'); // a Blade form with input fields
+    }
+
+    // Send data to Python API and return predictions
+    public function forecast(Request $request)
+    {
+        $data = $request->only(['feature1', 'feature2', 'feature3']); // adjust features
+
+        // Call Python FastAPI
+        $response = Http::post('http://127.0.0.1:8000/predict', $data);
+
+        if ($response->failed()) {
+            return redirect()->back()->with('error', 'Prediction API is unavailable.');
+        }
+
+        $prediction = $response->json()['prediction'];
+        $explanation = $response->json()['explanation'];
+
+        return view('sales.forecast-result', compact('prediction', 'explanation'));
+    }
 }
+    
+

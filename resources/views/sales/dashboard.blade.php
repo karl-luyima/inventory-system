@@ -78,7 +78,7 @@
 </div>
 
 {{-- Chart.js --}}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
 <script>
 let topProductsChart = null;
@@ -141,7 +141,6 @@ function updateSalesTable(sales) {
 
     sales.forEach((sale, index) => {
         const productName = sale.product?.pdt_name || sale.pdt_name || 'N/A';
-        // Convert server timestamp to Nairobi time
         const saleDate = new Date(sale.date || sale.created_at)
             .toLocaleString('en-KE', { timeZone: 'Africa/Nairobi' });
         const row = `

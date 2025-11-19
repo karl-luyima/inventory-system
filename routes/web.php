@@ -7,6 +7,7 @@ use App\Http\Controllers\SalesAnalystController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\HomeController;
+use Illuminate\Support\Facades\DB;
 
 // ------------------------
 // Public / Home
@@ -92,4 +93,12 @@ Route::prefix('sales')->name('sales.')->group(function () {
     Route::get('/reports', [SalesAnalystController::class, 'reports'])->name('reports');
     Route::get('/download', [SalesAnalystController::class, 'downloadReport'])->name('downloadReport');
     Route::get('/fetch-sales-data', [SalesAnalystController::class, 'fetchSalesData'])->name('data');
+});
+
+
+// routes/web.php
+
+Route::prefix('sales')->name('sales.')->group(function () {
+    Route::get('/forecast', [SalesAnalystController::class, 'showForecastForm'])->name('forecast.form');
+    Route::post('/forecast', [SalesAnalystController::class, 'forecast'])->name('forecast.run');
 });

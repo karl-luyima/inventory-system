@@ -12,13 +12,9 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\Facade\Pdf;
 
-
 class InventoryClerkController extends Controller
 {
     // ================= Dashboard =================
-
-
-
     public function dashboard()
     {
         $products = Product::all();
@@ -60,12 +56,9 @@ class InventoryClerkController extends Controller
         ]);
 
         DB::beginTransaction();
-
         try {
-            // ✅ Use inventory selected in the form
             $inventory_id = $request->inventory_id;
 
-            // ✅ Find or create product under the selected inventory
             $product = Product::firstOrCreate(
                 ['pdt_name' => $request->pdt_name, 'inventory_id' => $inventory_id],
                 [
@@ -74,16 +67,13 @@ class InventoryClerkController extends Controller
                 ]
             );
 
-            // ✅ Check stock availability
             if ($product->stock_level < $request->quantity) {
                 return redirect()->back()->with('error', 'Not enough stock available for this sale.');
             }
 
-            // ✅ Reduce stock
             $product->stock_level -= $request->quantity;
             $product->save();
 
-            // ✅ Record sale in sales table
             Sale::create([
                 'pdt_id' => $product->pdt_id,
                 'quantity' => $request->quantity,
@@ -92,7 +82,6 @@ class InventoryClerkController extends Controller
             ]);
 
             DB::commit();
-
             return redirect()->route('clerk.dashboard')->with('success', 'Sale saved successfully!');
         } catch (\Exception $e) {
             DB::rollBack();
@@ -128,7 +117,7 @@ class InventoryClerkController extends Controller
     // ================= Show Create Product Form =================
     public function createProduct()
     {
-        $inventories = Inventory::all(); // For selecting which inventory the product belongs to
+        $inventories = Inventory::all();
         return view('inventory.product-form', compact('inventories'));
     }
 
@@ -149,7 +138,7 @@ class InventoryClerkController extends Controller
             'inventory_id' => $request->inventory_id,
         ]);
 
-        return redirect()->route('clerk.dashboard')->with('success', 'Product created successfully!');
+        return redirect()->route('clerk.dashboard')->with('success', 'Product successfully added!');
     }
 
     // ================= Redirect to Dashboard =================
@@ -180,7 +169,7 @@ class InventoryClerkController extends Controller
         return redirect()->route('clerk.dashboard')->with('success', 'Inventory created successfully!');
     }
 
-
+    // ================= Reports =================
     public function report()
     {
         $kpis = Kpi::all();

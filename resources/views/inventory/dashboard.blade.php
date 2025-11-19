@@ -5,9 +5,28 @@
 @section('content')
 <div class="space-y-6">
 
+    <!-- Flash Messages -->
+    @if(session('success'))
+        <div 
+            id="flash-message" 
+            class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative"
+            role="alert">
+            <span class="block sm:inline">{{ session('success') }}</span>
+        </div>
+    @endif
+
+    @if(session('error'))
+        <div 
+            id="flash-message" 
+            class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative"
+            role="alert">
+            <span class="block sm:inline">{{ session('error') }}</span>
+        </div>
+    @endif
+
     <!-- Header -->
     <div class="flex justify-between items-center mb-6">
-        
+        <!-- Optional header content -->
     </div>
 
     <!-- Search Products -->
@@ -59,4 +78,18 @@
         </table>
     </div>
 </div>
+
+<!-- Auto-hide flash message script -->
+<script>
+    setTimeout(() => {
+        const flash = document.getElementById('flash-message');
+        if(flash){
+            flash.style.transition = "opacity 0.5s ease, transform 0.5s ease";
+            flash.style.opacity = 0;
+            flash.style.transform = "translateY(-20px)";
+            setTimeout(() => flash.remove(), 500);
+        }
+    }, 4000);
+</script>
+
 @endsection
