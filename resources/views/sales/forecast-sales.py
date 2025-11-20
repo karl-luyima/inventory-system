@@ -1,150 +1,177 @@
-import os
 import pandas as pd
 import numpy as np
-import joblib
-from datetime import timedelta
-from sqlalchemy import create_engine
-from lightgbm.basic import Booster
+from statsmodels.tsa.api import ExponentialSmoothing
+import matplotlib.pyplot as plt
+import pickle 
+import mysql.connector 
+from sqlalchemy import create_engine, text 
 
-# =====================================
-# Paths
-# =====================================
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-MODEL_PATH = os.path.join(BASE_DIR, "sales_model.pkl")
-OUTPUT_PATH = os.path.join(BASE_DIR, "forecast_output.csv")
+# --- Configuration ---
+# Your MySQL Database Credentials
+DB_CONFIG = {
+    'host': '127.0.0.1', 
+    'database': 'inventorymgt',
+    'user': 'root',     
+    'password': ''      
+}
+# Define the connection string for SQLAlchemy
+DB_URL = (
+    f'mysql+mysqlconnector://{DB_CONFIG["user"]}:'
+    f'{DB_CONFIG["password"]}@{DB_CONFIG["host"]}:3306/{DB_CONFIG["database"]}'
+)
 
-# =====================================
-# 1️⃣ Connect to MySQL and load data
-# =====================================
-DB_USER = "root"
-DB_PASSWORD = ""
-DB_HOST = "localhost"
-DB_NAME = "inventorymgt"
+FORECAST_WEEKS = 30
+SEASONAL_PERIODS = 13 # Quarterly Cycle in Weeks
+MINIMUM_DATA_WEEKS = SEASONAL_PERIODS + 1 
+MODEL_FILENAME = 'holt_winters_weekly_model.pkl'
+# --- Aggregate Forecast ID ---
+# MUST be an existing ID in your 'products' table to satisfy the foreign key constraint
+AGGREGATE_PDT_ID = 41 
+# ---------------------
 
-engine = create_engine(f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}")
+def fetch_sales_data(config):
+    """Connects to MySQL, extracts, and aggregates daily sales data."""
+    
+    QUERY = """
+    SELECT
+        DATE(date) AS SaleDate,
+        SUM(totalAmount) AS TotalSales
+    FROM sales
+    GROUP BY SaleDate
+    ORDER BY SaleDate ASC;
+    """
+    
+    try:
+        conn = mysql.connector.connect(**config)
+        sales_df = pd.read_sql(QUERY, conn, index_col='SaleDate')
+        conn.close()
+        
+        sales_df.rename(columns={'TotalSales': 'sales'}, inplace=True)
+        sales_df.index.name = 'date'
+        
+        sales_series = sales_df['sales'].copy()
+        sales_series.index = pd.to_datetime(sales_series.index)
+        
+        return sales_series
 
-# Pull sales and products tables
-sales_query = """
-SELECT s.date, s.totalAmount AS sales, p.pdt_id, p.pdt_name
-FROM sales s
-JOIN products p ON s.pdt_id = p.pdt_id
-ORDER BY p.pdt_name, s.date
-"""
-data = pd.read_sql(sales_query, engine)
-data['date'] = pd.to_datetime(data['date'])
-data = data.sort_values(['pdt_id', 'date']).reset_index(drop=True)
-data['sales_log'] = np.log1p(data['sales'])
+    except mysql.connector.Error as err:
+        print(f"Database Error: {err}")
+        print("Please ensure your MySQL server is running and the credentials are correct.")
+        return None
 
-# =====================================
-# 2️⃣ Load LightGBM model
-# =====================================
-model = joblib.load(MODEL_PATH)
-if hasattr(model, "booster_"):
-    model = model.booster_
-    is_booster = True
-else:
-    is_booster = isinstance(model, Booster)
+def prepare_data(sales_series):
+    """Aggregates daily sales data into weekly totals for the model."""
+    
+    y_weekly = sales_series.resample('W').sum()
+    
+    if not y_weekly.empty and y_weekly.iloc[0] == 0:
+        y_weekly = y_weekly.iloc[1:]
+        
+    return y_weekly
 
-# =====================================
-# 3️⃣ Feature Engineering
-# =====================================
-def create_features(df, last_data=None):
-    df = df.copy()
-    for lag in [1,3,7,14,30,60,90]:
-        if last_data is None:
-            df[f'lag_{lag}'] = df['sales_log'].shift(lag)
-        else:
-            df[f'lag_{lag}'] = last_data['sales_log'].iloc[-lag]
+def train_and_forecast(y_train, periods, seasonal_periods):
+    """Trains the Holt-Winters model, saves it, and generates a future forecast."""
+    
+    print("Training Holt-Winters Model with robust initialization...")
+    hw_model = ExponentialSmoothing(
+        y_train,
+        seasonal_periods=seasonal_periods, 
+        trend='add',
+        seasonal='add',
+        initialization_method="heuristic" 
+    ).fit()
+    
+    try:
+        with open(MODEL_FILENAME, 'wb') as f:
+            pickle.dump(hw_model, f)
+        print(f"New model successfully saved as: {MODEL_FILENAME}")
+    except Exception as e:
+        print(f"Warning: Could not save model file. Error: {e}")
 
-    for window in [7,14,30]:
-        if last_data is None:
-            df[f'roll_{window}_mean'] = df['sales_log'].shift(1).rolling(window).mean()
-            df[f'roll_{window}_std']  = df['sales_log'].shift(1).rolling(window).std()
-            df[f'roll_{window}_median'] = df['sales_log'].shift(1).rolling(window).median()
-        else:
-            df[f'roll_{window}_mean'] = last_data['sales_log'].iloc[-window:].mean()
-            df[f'roll_{window}_std']  = last_data['sales_log'].iloc[-window:].std()
-            df[f'roll_{window}_median'] = last_data['sales_log'].iloc[-window:].median()
+    future_forecast = hw_model.forecast(steps=periods)
+    
+    future_forecast_clipped = np.clip(future_forecast.values, a_min=0, a_max=None)
+    
+    return future_forecast.index, future_forecast_clipped
 
-    df['day_of_week'] = df['date'].dt.dayofweek
-    df['month'] = df['date'].dt.month
-    df['week_of_year'] = df['date'].dt.isocalendar().week.astype(int)
-    df['quarter'] = df['date'].dt.quarter
-    df['is_weekend'] = df['day_of_week'].isin([5,6]).astype(int)
-    df['day_of_month'] = df['date'].dt.day
-    df['year'] = df['date'].dt.year
+def plot_forecast(historical_data, forecast_dates, forecast_values):
+    """Plots the historical data and the future forecast."""
+    
+    plt.figure(figsize=(14, 6))
+    historical_data.plot(label='Historical Weekly Total Sales', color='blue')
+    
+    forecast_series = pd.Series(forecast_values, index=forecast_dates)
+    forecast_series.plot(label=f'{FORECAST_WEEKS}-Week Forecast', color='green', linestyle='--')
+    
+    plt.title('Weekly Total Retail Sales Forecast (Holt-Winters)')
+    plt.xlabel('Date')
+    plt.ylabel('Total Sales Amount (Weekly)')
+    plt.legend()
+    plt.grid(True)
+    
+    plot_file = 'final_weekly_forecast.png'
+    plt.savefig(plot_file)
+    print(f"\nForecast plot saved as: {plot_file}")
 
-    return df
-
-# =====================================
-# 4️⃣ Prepare features
-# =====================================
-data = create_features(data)
-data = data.dropna().reset_index(drop=True)
-numeric_cols = data.select_dtypes(include=[np.number]).columns.tolist()
-features = [col for col in numeric_cols if col not in ['sales', 'sales_log']]
-
-X = data[features].astype(float)
-if is_booster:
-    data['predicted_sales'] = np.expm1(model.predict(X.values))
-else:
-    data['predicted_sales'] = np.expm1(model.predict(X))
-
-# =====================================
-# 5️⃣ Forecast next 30 days per product
-# =====================================
-forecast_list = []
-
-for pdt_id, group in data.groupby('pdt_id'):
-    last_data = group.copy()
-    future_dates = pd.date_range(start=last_data['date'].max() + timedelta(days=1), periods=30)
-    future_sales = []
-
-    for date in future_dates:
-        temp = pd.DataFrame({'date':[date]})
-        temp = create_features(temp, last_data=last_data)
-        for feat in features:
-            if feat not in temp.columns:
-                temp[feat] = 0
-        X_future = temp[features].astype(float)
-        pred_log = model.predict(X_future.values)[0] if is_booster else model.predict(X_future)[0]
-        pred = np.expm1(pred_log)
-        future_sales.append(pred)
-
-        new_row = pd.DataFrame({'date':[date], 'sales_log':[pred_log], 'sales':[pred]})
-        last_data = pd.concat([last_data, new_row], ignore_index=True)
-
-    df_forecast = pd.DataFrame({
-        'pdt_id': pdt_id,
-        'forecast_date': future_dates,
-        'predicted_sales': future_sales
+# =======================================================================
+# MAIN EXECUTION BLOCK 
+# =======================================================================
+if __name__ == '__main__':
+    print("Starting weekly sales forecast using live database data...")
+    
+    # 1. Fetch Daily Sales Data from MySQL
+    daily_sales_series = fetch_sales_data(DB_CONFIG)
+    
+    if daily_sales_series is None or daily_sales_series.empty:
+        print("Could not retrieve sales data or data is empty. Exiting.")
+        exit()
+        
+    # 2. Aggregate Daily Data to Weekly Series
+    y_weekly = prepare_data(daily_sales_series)
+    
+    weekly_data_length = len(y_weekly)
+    print(f"Successfully aggregated {len(daily_sales_series.index.unique())} days of data into {weekly_data_length} weeks.")
+    
+    # 3. CRITICAL CHECK: Ensure enough data exists for model initialization
+    if weekly_data_length < MINIMUM_DATA_WEEKS:
+        print("... ERROR: INSUFFICIENT DATA HISTORY ...")
+        exit()
+        
+    # 4. Train and Forecast
+    forecast_dates, predicted_sales = train_and_forecast(
+        y_weekly, 
+        FORECAST_WEEKS, 
+        SEASONAL_PERIODS
+    )
+    
+    # 5. Create DataFrame and INSERT Results into Database 
+    forecast_df = pd.DataFrame({
+        # *** FIX: Using AGGREGATE_PDT_ID = 41 which is a valid product ID ***
+        'pdt_id': [AGGREGATE_PDT_ID] * len(predicted_sales), 
+        'forecast_date': forecast_dates, 
+        'predicted_sales': predicted_sales.round(2)
     })
-
-    # Filter out forecasts already in the DB for this product and future dates
-    existing = pd.read_sql(f"""
-        SELECT forecast_date FROM product_forecasts
-        WHERE pdt_id = {pdt_id}
-        AND forecast_date >= '{future_dates.min().date()}'
-    """, engine)
-
-    if not existing.empty:
-        df_forecast = df_forecast[~df_forecast['forecast_date'].isin(existing['forecast_date'])]
-
-    forecast_list.append(df_forecast)
-
-forecast_df = pd.concat(forecast_list, ignore_index=True)
-
-# =====================================
-# 6️⃣ Save to CSV
-# =====================================
-forecast_df.to_csv(OUTPUT_PATH, index=False)
-print(f"Forecast saved to {OUTPUT_PATH}")
-
-# =====================================
-# 7️⃣ Insert new forecasts into DB
-# =====================================
-if not forecast_df.empty:
-    forecast_df.to_sql('product_forecasts', engine, if_exists='append', index=False)
-    print("New forecasts appended to 'product_forecasts' table")
-else:
-    print("No new forecasts to insert (already exist in DB)")
+    
+    try:
+        # Create the SQLAlchemy Engine
+        engine = create_engine(DB_URL)
+        
+        # Clear old aggregate forecasts (pdt_id=41) before inserting new ones
+        with engine.connect() as connection:
+             connection.execute(text(f"DELETE FROM product_forecasts WHERE pdt_id = {AGGREGATE_PDT_ID}"))
+             connection.commit()
+             
+        # Insert the new forecast data
+        forecast_df.to_sql(
+            'product_forecasts', 
+            con=engine, 
+            if_exists='append', 
+            index=False
+        )
+        print(f"\nSUCCESS: 30-Week Aggregate Forecast successfully saved to 'product_forecasts' table (using pdt_id={AGGREGATE_PDT_ID}).")
+        
+    except Exception as e:
+        print(f"\nDATABASE INSERTION ERROR: Failed to insert forecast data. {e}")
+        
+    # 6. Plot Results
+    plot_forecast(y_weekly, forecast_dates, predicted_sales)

@@ -7,7 +7,7 @@ use App\Http\Controllers\SalesAnalystController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\HomeController;
-use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\ForecastController;
 
 // ------------------------
 // Public / Home
@@ -74,7 +74,6 @@ Route::prefix('clerk')->name('clerk.')->group(function () {
     Route::get('/report', [InventoryClerkController::class, 'report'])->name('report');
     Route::get('/report/download', [InventoryClerkController::class, 'downloadReport'])->name('report.download');
 
-
     // Products
     Route::get('/products/create', [InventoryClerkController::class, 'createProduct'])->name('products.create');
     Route::post('/products/store', [InventoryClerkController::class, 'storeProduct'])->name('products.store');
@@ -93,12 +92,12 @@ Route::prefix('sales')->name('sales.')->group(function () {
     Route::get('/reports', [SalesAnalystController::class, 'reports'])->name('reports');
     Route::get('/download', [SalesAnalystController::class, 'downloadReport'])->name('downloadReport');
     Route::get('/fetch-sales-data', [SalesAnalystController::class, 'fetchSalesData'])->name('data');
-});
 
+    // Main Forecast View
+    Route::get('/forecast', [SalesAnalystController::class, 'showForecast'])->name('forecast');
+    Route::post('/forecast/generate', [SalesAnalystController::class, 'generateForecast'])->name('generate_forecast');
 
-// routes/web.php
-
-Route::prefix('sales')->name('sales.')->group(function () {
-    Route::get('/forecast', [SalesAnalystController::class, 'showForecastForm'])->name('forecast.form');
-    Route::post('/forecast', [SalesAnalystController::class, 'forecast'])->name('forecast.run');
+    // Single product forecast chart
+    Route::get('/forecast/chart/{pdtId}', [ForecastController::class, 'viewChart'])
+        ->name('forecast.chart');
 });
