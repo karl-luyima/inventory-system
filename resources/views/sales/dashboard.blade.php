@@ -78,72 +78,74 @@
 </div>
 
 {{-- Chart.js --}}
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="{{ asset('resources/js/chart.umd.min.js') }}"></script>
 
 <script>
-let topProductsChart = null;
-const saveBtn = document.getElementById('saveBtn');
-const originalBtnHTML = saveBtn.innerHTML;
+    let topProductsChart = null;
+    const saveBtn = document.getElementById('saveBtn');
+    const originalBtnHTML = saveBtn.innerHTML;
 
-// ================= Record Sale =================
-document.getElementById('salesForm').addEventListener('submit', function(e) {
-    e.preventDefault();
+    // ================= Record Sale =================
+    document.getElementById('salesForm').addEventListener('submit', function(e) {
+        e.preventDefault();
 
-    saveBtn.disabled = true;
-    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
 
-    const formData = {
-        _token: "{{ csrf_token() }}",
-        pdt_name: document.getElementById('pdt_name').value,
-        quantity: parseInt(document.getElementById('quantity').value),
-        totalAmount: parseFloat(document.getElementById('totalAmount').value)
-    };
+        const formData = {
+            _token: "{{ csrf_token() }}",
+            pdt_name: document.getElementById('pdt_name').value,
+            quantity: parseInt(document.getElementById('quantity').value),
+            totalAmount: parseFloat(document.getElementById('totalAmount').value)
+        };
 
-    fetch("{{ route('sales.store') }}", {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(formData)
-        })
-        .then(res => res.json())
-        .then(data => {
-            saveBtn.disabled = false;
-            saveBtn.innerHTML = originalBtnHTML;
+        fetch("{{ route('sales.store') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(res => res.json())
+            .then(data => {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = originalBtnHTML;
 
-            if (!data.success) {
-                alert('❌ ' + (data.message || 'Failed to save sale.'));
-                return;
-            }
+                if (!data.success) {
+                    alert('❌ ' + (data.message || 'Failed to save sale.'));
+                    return;
+                }
 
-            alert('✅ Sale recorded successfully!');
-            updateSalesTable(data.sales);
-            updateTopProductsChart(data.topProducts);
-            document.getElementById('salesForm').reset();
-        })
-        .catch(err => {
-            saveBtn.disabled = false;
-            saveBtn.innerHTML = originalBtnHTML;
-            console.error('Error:', err);
-            alert('⚠️ Something went wrong. Check console for details.');
-        });
-});
+                alert('✅ Sale recorded successfully!');
+                updateSalesTable(data.sales);
+                updateTopProductsChart(data.topProducts);
+                document.getElementById('salesForm').reset();
+            })
+            .catch(err => {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = originalBtnHTML;
+                console.error('Error:', err);
+                alert('⚠️ Something went wrong. Check console for details.');
+            });
+    });
 
-// ================= Update Recent Sales Table =================
-function updateSalesTable(sales) {
-    const table = document.getElementById('salesTable');
-    table.innerHTML = '';
+    // ================= Update Recent Sales Table =================
+    function updateSalesTable(sales) {
+        const table = document.getElementById('salesTable');
+        table.innerHTML = '';
 
-    if (!sales || sales.length === 0) {
-        table.innerHTML = '<tr><td colspan="5" class="text-center p-4 text-gray-500">No sales recorded yet.</td></tr>';
-        return;
-    }
+        if (!sales || sales.length === 0) {
+            table.innerHTML = '<tr><td colspan="5" class="text-center p-4 text-gray-500">No sales recorded yet.</td></tr>';
+            return;
+        }
 
-    sales.forEach((sale, index) => {
-        const productName = sale.product?.pdt_name || sale.pdt_name || 'N/A';
-        const saleDate = new Date(sale.date || sale.created_at)
-            .toLocaleString('en-KE', { timeZone: 'Africa/Nairobi' });
-        const row = `
+        sales.forEach((sale, index) => {
+            const productName = sale.product?.pdt_name || sale.pdt_name || 'N/A';
+            const saleDate = new Date(sale.date || sale.created_at)
+                .toLocaleString('en-KE', {
+                    timeZone: 'Africa/Nairobi'
+                });
+            const row = `
         <tr class="border-t hover:bg-gray-50">
             <td class="border p-3 text-center">${index + 1}</td>
             <td class="border p-3">${productName}</td>
@@ -152,65 +154,65 @@ function updateSalesTable(sales) {
             <td class="border p-3 text-center">${saleDate}</td>
         </tr>
         `;
-        table.innerHTML += row;
-    });
-}
+            table.innerHTML += row;
+        });
+    }
 
-// ================= Update Top Products Chart =================
-function updateTopProductsChart(topProducts) {
-    if (!topProducts || topProducts.length === 0) return;
+    // ================= Update Top Products Chart =================
+    function updateTopProductsChart(topProducts) {
+        if (!topProducts || topProducts.length === 0) return;
 
-    const labels = topProducts.map(p => p.pdt_name || 'Unknown');
-    const values = topProducts.map(p => p.total_sold || 0);
+        const labels = topProducts.map(p => p.pdt_name || 'Unknown');
+        const values = topProducts.map(p => p.total_sold || 0);
 
-    if (topProductsChart) topProductsChart.destroy();
+        if (topProductsChart) topProductsChart.destroy();
 
-    const ctx = document.getElementById('topProductsChart').getContext('2d');
-    topProductsChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Units Sold',
-                data: values,
-                backgroundColor: 'rgba(255, 165, 0, 0.7)',
-                borderColor: 'rgba(255, 140, 0, 1)',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            scales: {
-                y: {
-                    beginAtZero: true,
+        const ctx = document.getElementById('topProductsChart').getContext('2d');
+        topProductsChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Units Sold',
+                    data: values,
+                    backgroundColor: 'rgba(255, 165, 0, 0.7)',
+                    borderColor: 'rgba(255, 140, 0, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Quantity Sold'
+                        }
+                    }
+                },
+                plugins: {
                     title: {
                         display: true,
-                        text: 'Quantity Sold'
+                        text: 'Top 5 Products by Quantity Sold'
+                    },
+                    legend: {
+                        display: false
                     }
                 }
-            },
-            plugins: {
-                title: {
-                    display: true,
-                    text: 'Top 5 Products by Quantity Sold'
-                },
-                legend: {
-                    display: false
-                }
             }
-        }
-    });
-}
+        });
+    }
 
-// ================= Load initial sales & chart =================
-document.addEventListener('DOMContentLoaded', () => {
-    fetch("{{ route('sales.data') }}")
-        .then(res => res.json())
-        .then(data => {
-            updateSalesTable(data.sales);
-            updateTopProductsChart(data.topProducts);
-        })
-        .catch(err => console.error('Failed to load initial sales data:', err));
-});
+    // ================= Load initial sales & chart =================
+    document.addEventListener('DOMContentLoaded', () => {
+        fetch("{{ route('sales.data') }}")
+            .then(res => res.json())
+            .then(data => {
+                updateSalesTable(data.sales);
+                updateTopProductsChart(data.topProducts);
+            })
+            .catch(err => console.error('Failed to load initial sales data:', err));
+    });
 </script>
 @endsection

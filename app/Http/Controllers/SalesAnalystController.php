@@ -42,23 +42,26 @@ class SalesAnalystController extends Controller
     // ================= Record a Sale =================
     public function store(Request $request)
     {
+        // ... inside store(Request $request)
         $request->validate([
             'pdt_name'      => 'required|string|max:255',
             'quantity'      => 'required|integer|min:1',
             'totalAmount'   => 'required|numeric|min:0',
-            'inventory_id'  => 'required|exists:inventories,inventory_id',
+            // 'inventory_id'  => 'required|exists:inventories,inventory_id', // <-- REMOVED THIS LINE
         ]);
 
         try {
-            // Create or find product
+            // Look up the product based on name (if it exists)
             $product = Product::firstOrCreate(
                 ['pdt_name' => $request->pdt_name],
                 [
                     'price'         => $request->price ?? 0,
                     'stock_level'   => $request->stock_level ?? 0,
-                    'inventory_id'  => $request->inventory_id,
+                    // You may need to guess or assign a default inventory_id here if it's strictly required by the Product model's schema
+                    'inventory_id'  => $request->inventory_id ?? 1, // <-- ADDED DEFAULT/DUMMY ID (ADJUST AS NEEDED)
                 ]
             );
+
 
             // Stock validation
             if ($product->stock_level < $request->quantity) {
@@ -105,7 +108,6 @@ class SalesAnalystController extends Controller
                 'sales'         => $sales,
                 'topProducts'   => $topProducts,
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -230,9 +232,9 @@ class SalesAnalystController extends Controller
         // 1. Fetch the latest forecasts from the database
         $forecasts = DB::table('product_forecasts AS pf')
             ->select(
-                'pf.pdt_id', 
-                'p.pdt_name', 
-                'pf.forecast_date', 
+                'pf.pdt_id',
+                'p.pdt_name',
+                'pf.forecast_date',
                 'pf.predicted_sales',
                 'pf.explanation_json' // <-- ADDED: Retrieve XAI explanation data
             )
@@ -245,7 +247,7 @@ class SalesAnalystController extends Controller
         $groupedForecasts = $forecasts->groupBy('pdt_name');
 
         // 👇 CORRECTED VIEW NAME: Using 'sales.forecast' which resolves to 'resources/views/sales/forecast.blade.php'
-        return view('sales.forecast', [ 
+        return view('sales.forecast', [
             'groupedForecasts' => $groupedForecasts,
         ]);
     }
@@ -275,7 +277,6 @@ class SalesAnalystController extends Controller
 
             // Success: Redirect to the forecast viewing page
             return redirect()->route('sales.show_forecast')->with('success', 'Product Demand Forecast successfully regenerated!');
-
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Forecast generation failed: ' . $e->getMessage());
         }
