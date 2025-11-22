@@ -28,8 +28,10 @@
                 <tr>
                     <th class="border px-4 py-2 text-left w-1/4">Product Name</th>
                     <th class="border px-4 py-2 text-left">Forecast Period</th>
-                    <th class="border px-4 py-2 text-right">Min Predicted Weekly Sales</th>
-                    <th class="border px-4 py-2 text-right">Max Predicted Weekly Sales</th>
+                    {{-- ✅ CORRECTED HEADER: Reflects Units --}}
+                    <th class="border px-4 py-2 text-right">Min Predicted Weekly Sales (Units)</th> 
+                    {{-- ✅ CORRECTED HEADER: Reflects Units --}}
+                    <th class="border px-4 py-2 text-right">Max Predicted Weekly Sales (Units)</th> 
                     <th class="border px-4 py-2 text-center">Details</th>
                 </tr>
             </thead>
@@ -41,6 +43,7 @@
                         $pdtId = $firstForecast ? $firstForecast->pdt_id : null;
                         $minPrediction = $productForecasts->min('predicted_sales');
                         $maxPrediction = $productForecasts->max('predicted_sales');
+                        // Use Carbon to parse and format dates
                         $startDate = \Carbon\Carbon::parse($productForecasts->min('forecast_date'))->format('M d, Y');
                         $endDate = \Carbon\Carbon::parse($productForecasts->max('forecast_date'))->format('M d, Y');
                     @endphp
@@ -53,19 +56,21 @@
                             ({{ $productForecasts->count() }} Weeks)
                         </td>
 
-                        <td class="border px-4 py-2 text-right text-red-600">
-                            KSh {{ number_format($minPrediction, 2) }}
+                        {{-- ✅ CORRECTED DISPLAY: Removes KSh, Rounds to 0 decimals, and adds 'Units' label --}}
+                        <td class="border px-4 py-2 text-right text-red-600 font-bold">
+                            {{ number_format(round($minPrediction), 0) }} Units 
                         </td>
 
-                        <td class="border px-4 py-2 text-right text-green-600">
-                            KSh {{ number_format($maxPrediction, 2) }}
+                        {{-- ✅ CORRECTED DISPLAY: Removes KSh, Rounds to 0 decimals, and adds 'Units' label --}}
+                        <td class="border px-4 py-2 text-right text-green-600 font-bold">
+                            {{ number_format(round($maxPrediction), 0) }} Units
                         </td>
 
                         <td class="border px-4 py-2 text-center">
                             @if($pdtId)
                                 <a href="{{ route('sales.forecast.chart', $pdtId) }}" 
                                    class="text-blue-500 hover:text-blue-700 text-sm">
-                                   View Chart
+                                    View Chart
                                 </a>
                             @else
                                 N/A
