@@ -47,7 +47,7 @@ class SalesAnalystController extends Controller
             'pdt_name'      => 'required|string|max:255',
             'quantity'      => 'required|integer|min:1',
             'totalAmount'   => 'required|numeric|min:0',
-            // 'inventory_id'  => 'required|exists:inventories,inventory_id', // 
+            // 'inventory_id'  => 'required|exists:inventories,inventory_id', // <-- REMOVED THIS LINE
         ]);
 
         try {
