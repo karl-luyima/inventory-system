@@ -47,18 +47,18 @@ class SalesAnalystController extends Controller
             'pdt_name'      => 'required|string|max:255',
             'quantity'      => 'required|integer|min:1',
             'totalAmount'   => 'required|numeric|min:0',
-            // 'inventory_id'  => 'required|exists:inventories,inventory_id', // <-- REMOVED THIS LINE
+            // 'inventory_id'  => 'required|exists:inventories,inventory_id', // 
         ]);
 
         try {
-            // Look up the product based on name (if it exists)
+            
             $product = Product::firstOrCreate(
                 ['pdt_name' => $request->pdt_name],
                 [
                     'price'         => $request->price ?? 0,
                     'stock_level'   => $request->stock_level ?? 0,
-                    // You may need to guess or assign a default inventory_id here if it's strictly required by the Product model's schema
-                    'inventory_id'  => $request->inventory_id ?? 1, // <-- ADDED DEFAULT/DUMMY ID (ADJUST AS NEEDED)
+                    
+                    'inventory_id'  => $request->inventory_id ?? 1, 
                 ]
             );
 
