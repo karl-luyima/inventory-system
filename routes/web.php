@@ -92,6 +92,8 @@ Route::prefix('sales')->name('sales.')->group(function () {
     Route::get('/reports', [SalesAnalystController::class, 'reports'])->name('reports');
     Route::get('/download', [SalesAnalystController::class, 'downloadReport'])->name('downloadReport');
     Route::get('/fetch-sales-data', [SalesAnalystController::class, 'fetchSalesData'])->name('data');
+    Route::get('/reorder-report', [SalesAnalystController::class, 'reorderReport'])
+        ->name('reorder.report');
 
     // Main Forecast View
     Route::get('/forecast', [SalesAnalystController::class, 'showForecast'])->name('forecast');

@@ -43,11 +43,7 @@
                 {{ request()->routeIs('admin.reports*') ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-blue-100 hover:text-blue-600' }}">
                 <i data-lucide="file-text"></i> Reports
             </a>
-            <a href="{{ route('admin.settings') }}"
-                class="flex items-center gap-2 px-4 py-2 rounded-lg font-medium
-                {{ request()->routeIs('admin.settings') ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-blue-100 hover:text-blue-600' }}">
-                <i data-lucide="settings"></i> Settings
-            </a>
+            
 
             <a href="{{ route('admin.topProducts') }}"
                 class="flex items-center gap-2 px-3 py-2 rounded
