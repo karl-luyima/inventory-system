@@ -249,11 +249,7 @@ class AdminController extends Controller
         return view('admin.top-products', compact('topProducts'));
     }
 
-    // ================= Settings =================
-    public function settings()
-    {
-        return view('admin.settings');
-    }
+   
 
     public function deleteReport($id)
     {

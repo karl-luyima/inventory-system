@@ -57,9 +57,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
     // Top Products
     Route::get('/top-products', [AdminController::class, 'topProducts'])->name('topProducts');
 
-    // Settings
-    Route::get('/settings', [AdminController::class, 'settings'])->name('settings');
-});
+});   
+
+    
 
 // ------------------------
 // Inventory Clerk Routes
