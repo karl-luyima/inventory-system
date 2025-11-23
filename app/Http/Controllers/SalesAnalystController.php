@@ -145,13 +145,13 @@ class SalesAnalystController extends Controller
                     'total_amount' => $product->{"sales_sum_total_amount"} ?? 0
                 ]);
 
-            // Summary totals
+            
             $totalSales = $sales->count();
             $totalRevenue = $sales->sum('totalAmount');
             $totalProducts = $sales->sum('quantity');
             $generatedAt = now()->format('d M Y H:i');
 
-            // Pass all variables to the view
+            
             $pdf = Pdf::loadView('sales.report_pdf', [
                 'sales' => $sales,
                 'topProducts' => $topProducts,
