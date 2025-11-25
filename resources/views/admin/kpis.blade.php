@@ -43,19 +43,16 @@
 
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         @forelse($kpis as $kpi)
-            <div class="relative p-6 rounded-2xl shadow-lg transition transform hover:scale-105 hover:shadow-xl text-white {{ $colorMap[$kpi->color] ?? 'bg-gray-500' }} flex flex-col justify-between">
-
-                {{-- Overlay for better contrast --}}
-                <div class="absolute inset-0 bg-black/10 rounded-2xl pointer-events-none"></div>
+            <div class="relative p-6 rounded-2xl shadow-lg transition transform hover:scale-105 hover:shadow-xl {{ $colorMap[$kpi->color] ?? 'bg-gray-500' }} flex flex-col">
 
                 {{-- KPI Title & Value --}}
-                <div class="relative z-10">
-                    <h2 class="text-base font-semibold break-words drop-shadow-md">{{ $kpi->title ?? 'No Title' }}</h2>
-                    <p class="text-2xl font-bold mt-1 drop-shadow-md">{{ $kpi->value ?? 'N/A' }}</p>
+                <div>
+                    <h2 class="text-base font-semibold text-black break-words">{{ $kpi->title ?? 'No Title' }}</h2>
+                    <p class="text-2xl font-bold mt-1 text-black">{{ $kpi->value ?? 'N/A' }}</p>
                 </div>
 
                 {{-- Action Buttons at bottom-right --}}
-                <div class="absolute bottom-3 right-3 flex gap-2 z-10">
+                <div class="flex gap-2 mt-auto justify-end">
                     <a href="{{ route('admin.kpis.edit', $kpi->id) }}" 
                        class="bg-yellow-400 text-white px-2 py-1 rounded text-xs hover:bg-yellow-500 shadow">
                         ✎
