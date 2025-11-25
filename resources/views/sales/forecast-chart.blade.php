@@ -13,6 +13,7 @@
         Visualizing future predicted sales and historical trends.
     </p>
 
+    {{-- Chart Canvas --}}
     <canvas id="forecastChart" height="120"></canvas>
 
     {{-- Overall chart explanation --}}
@@ -21,11 +22,12 @@
         <p>{{ $chartExplanation ?? 'No explanation available.' }}</p>
     </div>
 
-    {{-- Optional: Detailed per-forecast explanations --}}
+    {{-- Detailed per-forecast explanations --}}
     <h3 class="mt-6 text-xl font-semibold">Per-Forecast Explanations</h3>
     <table class="min-w-full mt-2 border">
         <thead>
             <tr class="bg-gray-100">
+                <th class="px-4 py-2 text-left">Forecast Date</th>
                 <th class="px-4 py-2 text-left">Predicted Sales (Units)</th>
                 <th class="px-4 py-2 text-left">Explanation</th>
             </tr>
@@ -34,11 +36,7 @@
             @foreach($forecastData as $forecast)
             <tr class="border-t">
                 <td class="px-4 py-2">{{ \Carbon\Carbon::parse($forecast->forecast_date)->format('M d, Y') }}</td>
-                {{-- ✅ FINAL FIX: Displays predicted_sales as a rounded unit, not KSh --}}
-                <td class="px-4 py-2 font-medium">
-                    {{ number_format(round($forecast->predicted_sales), 0) }} Units
-                </td>
-
+                <td class="px-4 py-2 font-medium">{{ number_format(round($forecast->predicted_sales), 0) }} Units</td>
                 <td class="px-4 py-2">{{ $forecast->explanation_text }}</td>
             </tr>
             @endforeach
@@ -47,59 +45,55 @@
 
 </div>
 
+{{-- Chart.js --}}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", function() {
 
-        const forecastLabels = {
-            !!json_encode($forecastData - > pluck('forecast_date') - > map(fn($d) => \Carbon\ Carbon::parse($d) - > format('M d'))) !!
-        };
-        const forecastValues = {
-            !!json_encode($forecastData - > pluck('predicted_sales')) !!
-        };
+    // Forecast labels and values
+    const forecastLabels = @json($forecastData->pluck('forecast_date')->map(fn($d) => \Carbon\Carbon::parse($d)->format('M d')));
+    const forecastValues = @json($forecastData->pluck('predicted_sales')->map(fn($v) => round($v)));
 
-        const historicalLabels = {
-            !!json_encode($historicalSales - > pluck('date') - > map(fn($d) => \Carbon\ Carbon::parse($d) - > format('M d'))) !!
-        };
-        const historicalValues = {
-            !!json_encode($historicalSales - > pluck('quantity')) !!
-        };
+    // Historical labels and values
+    const historicalLabels = @json($historicalSales->pluck('date')->map(fn($d) => \Carbon\Carbon::parse($d)->format('M d')));
+    const historicalValues = @json($historicalSales->pluck('quantity')->map(fn($v) => round($v)));
 
-        const ctx = document.getElementById('forecastChart').getContext('2d');
+    const ctx = document.getElementById('forecastChart').getContext('2d');
 
-        new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: [...historicalLabels, ...forecastLabels],
-                datasets: [{
-                        label: 'Historical Sales',
-                        data: historicalValues,
-                        borderColor: 'blue',
-                        tension: 0.4,
-                        borderWidth: 2,
-                        pointRadius: 3
-                    },
-                    {
-                        label: 'Forecasted Sales',
-                        data: Array(historicalValues.length).fill(null).concat(forecastValues),
-                        borderColor: 'green',
-                        borderDash: [5, 5],
-                        tension: 0.4,
-                        borderWidth: 2,
-                        pointRadius: 4
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: [...historicalLabels, ...forecastLabels],
+            datasets: [
+                {
+                    label: 'Historical Sales',
+                    data: historicalValues,
+                    borderColor: 'blue',
+                    tension: 0.4,
+                    borderWidth: 2,
+                    pointRadius: 3
+                },
+                {
+                    label: 'Forecasted Sales',
+                    data: Array(historicalValues.length).fill(null).concat(forecastValues),
+                    borderColor: 'green',
+                    borderDash: [5, 5],
+                    tension: 0.4,
+                    borderWidth: 2,
+                    pointRadius: 4
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
                 }
             }
-        });
-
+        }
     });
+
+});
 </script>
 @endsection
