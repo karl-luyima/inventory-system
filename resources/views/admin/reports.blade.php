@@ -6,7 +6,7 @@
         <h1 class="text-3xl font-bold text-gray-800">Reports Management</h1>
 
         <a href="{{ route('admin.reports.generate') }}" 
-           class="inline-flex items-center gap-2 px-4 py-2 text-white font-medium rounded-xl
+           class="inline-flex items-center gap-2 px-4 py-2 text-black hover:text-gray-900 font-medium rounded-xl
                   bg-gradient-to-r from-indigo-500 to-blue-600 
                   hover:from-indigo-600 hover:to-blue-700
                   shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition duration-200">
