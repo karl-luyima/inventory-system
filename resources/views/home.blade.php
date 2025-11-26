@@ -12,7 +12,7 @@
             MySMEAccess
         </h1>
         <p class="text-gray-700 text-lg md:text-xl">  
-            Simplifying SME management. Track products, manage inventory, and grow your business seamlessly.
+            Simplifying SME management. Track products, manage inventory, and grow your SME seamlessly.
         </p>
 
         <!-- Buttons -->
@@ -32,7 +32,7 @@
     <div class="max-w-6xl mt-20 grid grid-cols-1 md:grid-cols-3 gap-12 text-left">
         @php
             $features = [
-                ['icon'=>'📦','title'=>'Inventory Management','desc'=>'Keep track of your products, stock levels, and suppliers all in one place.'],
+                ['icon'=>'📦','title'=>'Inventory Management','desc'=>'Keep track of your products, stock levels, and sales all in one place.'],
                 ['icon'=>'📊','title'=>'Sales Analytics','desc'=>'Monitor sales performance, generate reports, and identify growth opportunities.'],
                 ['icon'=>'⚡','title'=>'Quick Access','desc'=>'Access all your SME tools quickly and efficiently, anytime, anywhere.'],
             ];

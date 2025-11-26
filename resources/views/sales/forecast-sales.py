@@ -217,7 +217,7 @@ if __name__ == '__main__':
     print(f"Starting sales forecast for products: {TARGET_PDT_IDS[0]} to {TARGET_PDT_IDS[-1]}")
     print(f"A detailed log will be saved to: {LOG_FILENAME}")
 
-    # Loop through all target product IDs (41, 42, ..., 60)
+    # Loop through all target product IDs 
     for product_id in TARGET_PDT_IDS:
         run_single_forecast(product_id)
     
